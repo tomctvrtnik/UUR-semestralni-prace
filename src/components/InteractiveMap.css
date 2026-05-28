@@ -1,0 +1,120 @@
+/* src/components/InteractiveMap.css */
+
+/* Obal odpovídá vizuální bounding box ikonky (kvůli rotaci je větší než špendlík sám) */
+.custom-pin-wrapper {
+    position: relative;
+    /* Zvětšeno, aby se sem vešel rotovaný 36px špendlík */
+    width: 52px;
+    height: 52px;
+    /* debug border - pro kontrolu oblasti: border: 1px solid red; */
+}
+
+/* Vlastní tvar špendlíku (kapička) */
+.custom-pin {
+    /* ZVĚTŠENO ze 30px na 36px */
+    width: 36px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    /* NAŠE ČERVENÁ BARVA (Tomato Jam) */
+    background: #BB4430;
+    position: absolute;
+    transform: rotate(-45deg);
+
+    /* Vycentrování 36px čtverce uvnitř 52px obalu */
+    left: 8px;
+    top: 8px;
+
+    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
+    border: 2px solid white;
+    /* Tenký bílý okraj pro lepší viditelnost */
+}
+
+/* --- OPRAVA: Dokonalé vycentrování tečky --- */
+.custom-pin::after {
+    content: '';
+    /* Lehce zvětšená tečka úměrně špendlíku */
+    width: 12px;
+    height: 12px;
+    background: white;
+    position: absolute;
+    border-radius: 50%;
+
+    /* Metoda pro absolutní střed bez ohledu na rotaci rodiče */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.user-location-wrapper {
+    position: relative;
+    /* Zvětšeno ze 30px na 40px */
+    width: 40px;
+    height: 40px;
+}
+
+/* Samotná modrá tečka s bílým okrajem */
+.user-location-dot {
+    /* Zvětšeno z 16px na 22px */
+    width: 22px;
+    height: 22px;
+    background-color: #009FB7;
+    /* Okraj mírně zesílen na 3px pro zachování proporcí */
+    border: 3px solid white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+/* Animovaný pulzující kruh pod tečkou */
+.user-location-pulse {
+    /* Zvětšeno ze 30px na 40px */
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 159, 183, 0.4);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    animation: gps-pulse 2s infinite ease-out;
+}
+
+/* Animace zůstává stejná */
+@keyframes gps-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+/* --- STYLY PRO NÁZVY MÍST POD ŠPENDLÍKEM --- */
+.custom-tooltip-label {
+    background-color: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    color: #333;
+    font-size: 12px;
+    padding: 2px 6px;
+    white-space: nowrap;
+}
+
+/* Skrytí té výchozí malé šipky, která na tooltipu normálně je */
+.leaflet-tooltip.custom-tooltip-label::before {
+    display: none;
+}
+
+.leaflet-tile-pane {
+    filter: grayscale(20%) contrast(1.1) brightness(1.05);
+}
