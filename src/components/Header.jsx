@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // <-- ZDE PŘIDÁN useRef
 import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider,
-    InputBase, styled, Dialog, Slide, useMediaQuery, useTheme // <-- Přidán useMediaQuery a useTheme
+    InputBase, styled, Dialog, Slide, useMediaQuery, useTheme
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
@@ -66,9 +66,11 @@ export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
+    // NOVÉ: Reference na vyhledávací pole, abychom ho mohli ovládat ručně
+    const searchInputRef = useRef(null);
+
     const { isDarkMode, toggleDarkMode } = useStore();
 
-    // Detekce, zda je uživatel na mobilu/menším tabletu
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -102,7 +104,6 @@ export default function Header() {
             <AppBar position="sticky" color="primary" sx={{ top: 0, zIndex: 9999 }}>
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 1, sm: 2 } }}>
 
-                    {/* LEVÁ ČÁST: Menu, Nadpis a Profil */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <IconButton
                             size="large"
@@ -132,7 +133,6 @@ export default function Header() {
                         </Box>
                     </Box>
 
-                    {/* PRAVÁ ČÁST: Vyhledávání */}
                     <Box sx={{
                         width: { xs: '100%', md: '400px' },
                         display: 'flex',
@@ -141,7 +141,6 @@ export default function Header() {
                         gap: 2,
                         px: { xs: 1, md: 2 }
                     }}>
-                        {/* Rozhodnutí: Kurzíva pointer pro klikání na mobilu, normální text na PC */}
                         <Search
                             onClick={isMobile ? openSearch : undefined}
                             sx={{ cursor: isMobile ? 'pointer' : 'text' }}
@@ -150,9 +149,7 @@ export default function Header() {
                                 <SearchIcon />
                             </SearchIconWrapper>
 
-                            {/* Dynamické vykreslení podle zařízení */}
                             {isMobile ? (
-                                // FAKE POLE PRO MOBIL
                                 <>
                                     <Box sx={{
                                         py: 1.2, pl: 6, pr: 4, width: '100%',
@@ -177,7 +174,6 @@ export default function Header() {
                                     )}
                                 </>
                             ) : (
-                                // SKUTEČNÉ POLE PRO POČÍTAČ (Původní chování)
                                 <StyledInputBase
                                     placeholder="Hledat"
                                     inputProps={{ 'aria-label': 'search' }}
@@ -206,12 +202,23 @@ export default function Header() {
                 </Toolbar>
             </AppBar>
 
-            {/* FULLSCREEN VYHLEDÁVACÍ MODAL (Otevírá se jen na mobilu) */}
+            {/* FULLSCREEN VYHLEDÁVACÍ MODAL */}
             <Dialog
                 fullScreen
                 open={isSearchModalOpen}
                 onClose={() => setIsSearchModalOpen(false)}
                 TransitionComponent={Transition}
+                // TOTO JE OPRAVA: Vypne agresivní hlídání kurzoru
+                disableEnforceFocus
+                disableRestoreFocus
+                // Focus se provede hladce až PO dokončení animace modal okna
+                TransitionProps={{
+                    onEntered: () => {
+                        if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                        }
+                    }
+                }}
                 sx={{ zIndex: 10000 }}
             >
                 <AppBar position="static" color="inherit" elevation={1}>
@@ -225,9 +232,9 @@ export default function Header() {
                             <ArrowBackIcon />
                         </IconButton>
                         <InputBase
+                            inputRef={searchInputRef} // Připojená reference místo obyčejného autoFocus
                             sx={{ ml: 1, flex: 1, fontSize: '1.1rem' }}
                             placeholder="Hledat"
-                            autoFocus
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             inputProps={{ 'aria-label': 'search real' }}
@@ -247,7 +254,7 @@ export default function Header() {
                 </Box>
             </Dialog>
 
-            {/* Hamburger Menu */}
+            {/* Hamburger Menu (Zůstává beze změn) */}
             <Drawer anchor="left" open={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
                 <Box sx={{ width: 280 }} role="presentation">
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2 }}>
