@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Drawer } from 'vaul';
 import { Box, Typography, useTheme } from '@mui/material';
 import Sidebar from './Sidebar';
@@ -11,6 +12,24 @@ export default function MobileBottomSheet() {
 
     // Získáme aktuální MUI téma (obsahuje info, jestli je light nebo dark mode)
     const theme = useTheme();
+
+    // NOVÉ: Automatický reset šuplíku při změně klávesnice/viewportu
+    useEffect(() => {
+        const handleResize = () => {
+            // Když se viewport zvětší/zmenší (klávesnice vyskočí nebo zmizí)
+            // Nastavíme malinké zpoždění, aby prohlížeč stihl přepočítat pixely
+            setTimeout(() => {
+                // Donutíme šuplík vrátit se na 50 % obrazovky
+                setMobileSnap(0.5);
+            }, 150);
+        };
+
+        // Nasloucháme změnám viditelného okna (pokud to prohlížeč podporuje)
+        window.visualViewport?.addEventListener('resize', handleResize);
+
+        // Úklid po odpojení komponenty (aby nám to neběželo na pozadí vícekrát)
+        return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    }, [setMobileSnap]);
 
     return (
         <Drawer.Root
