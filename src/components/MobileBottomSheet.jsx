@@ -41,6 +41,7 @@ export default function MobileBottomSheet() {
 
     return (
         <Drawer.Root
+            disablePreventScroll={true}
             snapPoints={snapPoints}
             activeSnapPoint={mobileSnap}
             setActiveSnapPoint={(val) => {
