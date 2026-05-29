@@ -20,7 +20,6 @@ import PlaceIcon from '@mui/icons-material/Place';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
-
 // --- STYLY PRO VYHLEDÁVACÍ POLE ---
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -33,8 +32,6 @@ const Search = styled('div')(({ theme }) => ({
     },
     width: '100%',
 }));
-
-
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
     padding: theme.spacing(0, 2),
@@ -71,7 +68,7 @@ export default function Header() {
         setSearchQuery,
         setIsPlanningRoute,
         setIsViewingRoutes,
-        setIsViewingVisited, // <--- DOPLNĚNO ZDE
+        setIsViewingVisited,
         setIsViewingCreatedPlaces,
         clearViews,
         setMobileSnap
@@ -81,6 +78,7 @@ export default function Header() {
         clearViews();
         setIsAddingPlace(true);
         setIsMenuOpen(false);
+        setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
     };
 
     return (
@@ -120,18 +118,16 @@ export default function Header() {
                     </Box>
 
                     {/* PRAVÁ ČÁST: Vyhledávání */}
-
-
-
                     <Box sx={{
                         width: { xs: '100%', md: '400px' },
                         display: 'flex',
-                        justifyContent: 'center', // Vyhledávání zůstane uprostřed
-                        alignItems: 'center',     // Ikonka se vycentruje na výšku s vyhledáváním
-                        gap: 2,                   // TADY JE TA ZMĚNA: vytvoří mezeru mezi vyhledáváním a ikonou
-                        px: { xs: 1, md: 2 }      // Upravený padding, aby to nebylo nalepené na krajích
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: 2,
+                        px: { xs: 1, md: 2 }
                     }}>
-                        <Search onFocus={() => setMobileSnap(0.1)}>
+                        {/* OPRAVA: Místo 0.1 voláme 0.25 (odpovídá nejnižšímu bodu v šuplíku) */}
+                        <Search onFocus={() => setMobileSnap(0.25)}>
                             <SearchIconWrapper>
                                 <SearchIcon />
                             </SearchIconWrapper>
@@ -155,7 +151,6 @@ export default function Header() {
                             />
                         </Search>
 
-                        {/* Tady je ta druhá změna: mr: 1 odsune ikonku od pravého okraje */}
                         <IconButton onClick={toggleDarkMode} sx={{ color: 'white', mr: 1 }}>
                             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
                         </IconButton>
@@ -198,13 +193,12 @@ export default function Header() {
                     <Divider />
 
                     <List>
-
                         <ListItem disablePadding>
                             <ListItemButton onClick={() => {
                                 clearViews();
-                                setIsViewingVisited(true); // Zapne pohled navštívených
-                                setIsMenuOpen(false);      // Zavře menu
-
+                                setIsViewingVisited(true);
+                                setIsMenuOpen(false);
+                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
                             }}>
                                 <ListItemIcon>
                                     <CheckCircleIcon />
@@ -217,8 +211,9 @@ export default function Header() {
                         <ListItem disablePadding>
                             <ListItemButton onClick={() => {
                                 clearViews();
-                                setIsViewingRoutes(true); // Zapne pohled na trasy
-                                setIsMenuOpen(false);    // Zavře menu
+                                setIsViewingRoutes(true);
+                                setIsMenuOpen(false);
+                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
                             }}>
                                 <ListItemIcon>
                                     <MapIcon />
@@ -232,6 +227,7 @@ export default function Header() {
                                 clearViews();
                                 setIsPlanningRoute(true);
                                 setIsMenuOpen(false);
+                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
                             }}>
                                 <ListItemIcon>
                                     <RouteIcon />
@@ -243,8 +239,9 @@ export default function Header() {
                         <ListItem disablePadding>
                             <ListItemButton onClick={() => {
                                 clearViews();
-                                setIsViewingCreatedPlaces(true); // Zapne pohled na vlastní místa
+                                setIsViewingCreatedPlaces(true);
                                 setIsMenuOpen(false);
+                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
                             }}>
                                 <ListItemIcon>
                                     <PlaceIcon />
@@ -257,6 +254,7 @@ export default function Header() {
                             <ListItemButton onClick={() => {
                                 setIsMenuOpen(false);
                                 clearViews();
+                                setMobileSnap(0.55); // Resetujeme na defaultní pohled
                             }}>
                                 <ListItemIcon>
                                     <InfoOutlinedIcon />
