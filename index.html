@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/src/assets/favicon.svg" />
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, interactive-widget=resizes-content" />
   <title>KIV/UUR Čtvrtník T.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,12 +47,20 @@
     html,
     body,
     #root {
+      width: 100%;
       height: 100%;
       height: 100dvh;
-      /* Použití dynamické výšky (reaguje na klávesnici) */
+      /* Použije dynamickou výšku, pokud ji prohlížeč umí */
       margin: 0;
+      padding: 0;
+
+      /* TOTO JSOU DVA MAGICKÉ ŘÁDKY: */
       overflow: hidden;
-      /* Zabrání prohlížeči odrolovat šuplík mimo obrazovku */
+      /* Zakáže prohlížeči rolovat s celou stránkou */
+      position: fixed;
+      /* Přibije aplikaci na místo, klávesnice ji už neposune */
+      top: 0;
+      left: 0;
     }
   </style>
 </head>
