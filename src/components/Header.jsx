@@ -129,7 +129,7 @@ export default function Header() {
                         gap: 2,
                         px: { xs: 1, md: 2 }
                     }}>
-                        <Search onFocus={() => setMobileSnap(0.17)}>
+                        <Search onFocus={() => setMobileSnap(0.55)}>
                             <SearchIconWrapper>
                                 <SearchIcon />
                             </SearchIconWrapper>
