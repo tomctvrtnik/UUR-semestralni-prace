@@ -1,5 +1,5 @@
 import { Drawer } from 'vaul';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 import Sidebar from './Sidebar';
 import { useStore } from '../store/useStore';
 
@@ -8,6 +8,9 @@ export default function MobileBottomSheet() {
 
     // Taháme data a funkci z našeho mozku (Zustandu)
     const { mobileSnap, setMobileSnap } = useStore();
+
+    // Získáme aktuální MUI téma (obsahuje info, jestli je light nebo dark mode)
+    const theme = useTheme();
 
     return (
         <Drawer.Root
@@ -33,14 +36,21 @@ export default function MobileBottomSheet() {
             <Drawer.Portal>
                 <Drawer.Content
                     style={{
-                        display: 'flex', flexDirection: 'column', backgroundColor: '#FDFFF7',
+                        display: 'flex', flexDirection: 'column',
+                        // ZDE JE OPRAVA: Dynamická barva pozadí podle tématu
+                        backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#FDFFF7',
                         borderTopLeftRadius: '20px', borderTopRightRadius: '20px',
                         height: '100%', position: 'fixed', bottom: 0, left: 0, right: 0,
                         zIndex: 1001, boxShadow: '0px -5px 25px rgba(0,0,0,0.2)',
                     }}
                 >
                     <Box className="vaul-drag-handle" sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'grab', touchAction: 'none' }}>
-                        <Box sx={{ width: 45, height: 6, backgroundColor: '#cbd5e1', borderRadius: 3, mb: 1 }} />
+                        <Box sx={{
+                            width: 45, height: 6,
+                            // Dynamická barva pro tahátko (aby nesvítilo v noci)
+                            backgroundColor: theme.palette.mode === 'dark' ? '#555' : '#cbd5e1',
+                            borderRadius: 3, mb: 1
+                        }} />
                         <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>
                             NÁVRHY A DETAILY
                         </Typography>

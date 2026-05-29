@@ -52,7 +52,7 @@ export default function Sidebar() {
     // --- POHLEDY ---
     if (isAddingPlace) {
         return (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
                 <Button variant="outlined" onClick={() => clearViews()} sx={{ mb: 2, alignSelf: 'flex-start' }} color="inherit">
                     Zrušit přidávání
                 </Button>
@@ -65,7 +65,7 @@ export default function Sidebar() {
     if (isViewingVisited) {
         const visitedPlaces = places.filter(p => p.isVisited);
         return (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, bgcolor: 'background.paper' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexShrink: 0 }}>
                     <IconButton onClick={() => clearViews()} sx={{ mr: 1, ml: -1 }}><ArrowBackIcon /></IconButton>
                     <Typography variant="h5" color="text.primary" sx={{ fontWeight: 'bold', m: 0 }}>Navštívená místa</Typography>
@@ -92,7 +92,7 @@ export default function Sidebar() {
     if (isViewingCreatedPlaces) {
         const createdPlaces = places.filter(p => p.isCreatedByUser);
         return (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, bgcolor: 'background.paper' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexShrink: 0 }}>
                     <IconButton onClick={() => clearViews()} sx={{ mr: 1, ml: -1 }}><ArrowBackIcon /></IconButton>
                     <Typography variant="h5" color="text.primary" sx={{ fontWeight: 'bold', m: 0 }}>Moje místa</Typography>
@@ -131,7 +131,7 @@ export default function Sidebar() {
 
     if (isViewingRoutes) {
         return (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, bgcolor: 'background.paper' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexShrink: 0 }}>
                     <IconButton onClick={() => clearViews()} sx={{ mr: 1, ml: -1 }}><ArrowBackIcon /></IconButton>
                     <Typography variant="h5" color="text.primary" sx={{ fontWeight: 'bold', m: 0 }}>Moje trasy</Typography>
@@ -157,7 +157,7 @@ export default function Sidebar() {
 
     if (isPlanningRoute) {
         return (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, bgcolor: 'background.paper' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, flexShrink: 0 }}>
                     <IconButton onClick={() => clearViews()} sx={{ mr: 1, ml: -1 }}><ArrowBackIcon /></IconButton>
                     <Typography variant="h5" color="text.primary" sx={{ fontWeight: 'bold', m: 0 }}>Plánování trasy</Typography>
@@ -169,7 +169,7 @@ export default function Sidebar() {
 
     if (selectedPlace) {
         return (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Button variant="outlined" onClick={() => clearViews()} color="primary">Zpět na návrhy</Button>
                     <Button variant="contained" startIcon={<AddIcon />}
@@ -210,7 +210,7 @@ export default function Sidebar() {
     const availableTags = ['Vhodné pro děti', 'Se psem', 'Parkování', 'Historie', 'Krásný výhled', 'Filmové lokace'];
 
     return (
-        <Box sx={{ position: 'relative' }}>
+        <Box sx={{ position: 'relative', bgcolor: 'background.paper', minHeight: '100%' }}>
             <Box sx={{ position: 'sticky', top: '-16px', pt: '16px', pb: 1, zIndex: 10, bgcolor: 'background.paper' }}>
                 <Accordion variant="outlined" sx={{ borderRadius: 2, borderColor: 'primary.main', '&:before': { display: 'none' } }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
