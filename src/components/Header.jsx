@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // <-- ZDE PŘIDÁN useEffect
 import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider,
     InputBase, styled, Dialog, Slide, useMediaQuery, useTheme, Button,
-    Card, CardContent // <-- Přidány importy pro karty
+    Card, CardContent
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
@@ -82,7 +82,7 @@ export default function Header() {
         setIsViewingCreatedPlaces,
         clearViews,
         setMobileSnap,
-        setSelectedPlace, // <-- Přidáno pro otevření detailu místa
+        setSelectedPlace,
         places = []
     } = useStore();
 
@@ -106,23 +106,34 @@ export default function Header() {
         }, 100);
     };
 
-    // NOVÉ: Funkce pro kliknutí přímo na kartu ve výsledcích
     const handlePlaceClick = (place) => {
-        setIsSearchModalOpen(false); // Zavře modal
-        clearViews(); // Vyčistí ostatní pohledy
-        setSelectedPlace(place); // Nastaví vybrané místo (otevře detail)
+        setIsSearchModalOpen(false);
+        clearViews();
+        setSelectedPlace(place);
 
         setTimeout(() => {
-            setMobileSnap(0.55); // Vytáhne šuplík nahoru
+            setMobileSnap(0.55);
         }, 100);
     };
 
-    // OPRAVA: Filtrace výsledků používá place.title místo place.name
     const filteredPlaces = searchQuery
         ? places.filter(place =>
             place.title && place.title.toLowerCase().includes(searchQuery.toLowerCase())
         )
         : [];
+
+    // NOVÉ: Vlastní blbuvzdorný hlídač pro Focus políčka
+    useEffect(() => {
+        if (isSearchModalOpen) {
+            // Počkáme chvilku, než se okno bezpečně vyrenderuje a začne animace
+            const focusTimer = setTimeout(() => {
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus();
+                }
+            }, 100);
+            return () => clearTimeout(focusTimer);
+        }
+    }, [isSearchModalOpen]);
 
     return (
         <>
@@ -181,9 +192,10 @@ export default function Header() {
                 open={isSearchModalOpen}
                 onClose={() => setIsSearchModalOpen(false)}
                 TransitionComponent={Transition}
+                // OPRAVA: Tři jezdci apokalypsy MUI Dialogu – vypnutí všech zámků!
+                disableAutoFocus
                 disableEnforceFocus
                 disableRestoreFocus
-                TransitionProps={{ onEntered: () => { if (searchInputRef.current) { searchInputRef.current.focus(); } } }}
                 sx={{ zIndex: 10000 }}
             >
                 <AppBar position="static" color="inherit" elevation={1}>
@@ -219,7 +231,6 @@ export default function Header() {
                                 Hledat: "{searchQuery}"
                             </Button>
 
-                            {/* PŘIDANÉ KARTY ZE SIDEBARU */}
                             {filteredPlaces.length > 0 && (
                                 <Box>
                                     <Typography variant="h6" color="text.primary" gutterBottom>
