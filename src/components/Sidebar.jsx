@@ -21,6 +21,8 @@ const getDistanceInMeters = (distanceStr) => {
 
 export default function Sidebar() {
     const [placeToDelete, setPlaceToDelete] = useState(null);
+    // <-- NOVÉ: Stav pro potvrzovací okno mazání trasy
+    const [routeToDelete, setRouteToDelete] = useState(null);
 
     const {
         places, selectedPlace, setSelectedPlace, searchQuery, activeCategories, toggleCategory,
@@ -28,7 +30,8 @@ export default function Sidebar() {
         setRoutePoints, isViewingRoutes, setIsViewingRoutes, savedRoutes, toggleVisited, setRating,
         isViewingVisited, setIsViewingVisited, isViewingCreatedPlaces, setIsViewingCreatedPlaces,
         removePlace, clearViews, maxDistance, setMaxDistance, hideVisited, setHideVisited,
-        minRating, setMinRating, activeTags, toggleTag
+        minRating, setMinRating, activeTags, toggleTag,
+        removeRoute // <-- NOVÉ: Vytažení funkce pro mazání
     } = useStore();
 
     let processedPlaces = places.filter(place => {
@@ -107,7 +110,6 @@ export default function Sidebar() {
                                 <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: '16px !important' }}>
                                     <Box>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{place.title}</Typography>
-                                        {/* OPRAVA KATEGORIE */}
                                         <Typography variant="body2" color="text.secondary">
                                             Kategorie: {Array.isArray(place.category) ? place.category.join(', ') : place.category}
                                         </Typography>
@@ -146,14 +148,30 @@ export default function Sidebar() {
                         savedRoutes.map((route) => (
                             <Card key={route.id} sx={{ mb: 2, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                                 onClick={() => { clearViews(); setRoutePoints(route.points); setIsPlanningRoute(true); }}>
-                                <CardContent>
-                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{route.name}</Typography>
-                                    <Typography variant="body2" color="text.secondary">Uloženo: {route.date} • {route.points.length} bodů</Typography>
+                                {/* <-- NOVÉ: Flex layout pro kartičku trasy s popelnicí --> */}
+                                <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: '16px !important' }}>
+                                    <Box>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{route.name}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Uloženo: {route.date} • {route.points.length} bodů</Typography>
+                                    </Box>
+                                    <IconButton color="error" onClick={(e) => { e.stopPropagation(); setRouteToDelete(route); }}>
+                                        <DeleteIcon />
+                                    </IconButton>
                                 </CardContent>
                             </Card>
                         ))
                     )}
                 </List>
+
+                {/* <-- NOVÉ: Potvrzovací dialog pro smazání trasy --> */}
+                <Dialog open={Boolean(routeToDelete)} onClose={() => setRouteToDelete(null)}>
+                    <DialogTitle sx={{ fontWeight: 'bold' }}>Jste si jistý?</DialogTitle>
+                    <DialogContent><DialogContentText>Opravdu smazat trasu "{routeToDelete?.name}"?</DialogContentText></DialogContent>
+                    <DialogActions sx={{ p: 2 }}>
+                        <Button onClick={() => setRouteToDelete(null)} color="inherit">Zrušit</Button>
+                        <Button onClick={() => { removeRoute(routeToDelete.id); setRouteToDelete(null); }} color="error" variant="contained">Smazat</Button>
+                    </DialogActions>
+                </Dialog>
             </Box>
         );
     }
@@ -186,7 +204,6 @@ export default function Sidebar() {
                 </Box>
                 <Typography variant="h4" color="text.primary" sx={{ fontWeight: 'bold' }} gutterBottom>{selectedPlace.title}</Typography>
 
-                {/* OPRAVA KATEGORIE V DETAILU */}
                 <Typography variant="subtitle1" color="text.secondary" gutterBottom>
                     Kategorie: {Array.isArray(selectedPlace.category) ? selectedPlace.category.join(', ') : selectedPlace.category} • Hodnocení: {selectedPlace.rating || 0} ★
                 </Typography>
@@ -278,7 +295,6 @@ export default function Sidebar() {
                         <CardContent>
                             <Typography variant="h6" color="text.primary">{place.title}</Typography>
 
-                            {/* OPRAVA KATEGORIE A ZACHOVÁNÍ VZDÁLENOSTI I HODNOCENÍ */}
                             <Typography variant="body2" color="text.secondary">
                                 {Array.isArray(place.category) ? place.category.join(', ') : place.category} • {place.distance} • {place.rating || 0} ★
                             </Typography>

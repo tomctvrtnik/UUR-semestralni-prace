@@ -7,6 +7,7 @@ import AddIcon from '@mui/icons-material/Add';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import PlaceIcon from '@mui/icons-material/Place';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useStore } from '../store/useStore';
 
 // --- DND KIT IMPORTY ---
@@ -49,7 +50,8 @@ function SortableRouteItem({ point, onRemove }) {
 
 export default function RoutePlannerForm({ onClose }) {
     const [transportMode, setTransportMode] = useState('car');
-    const { places, routePoints, addRoutePoint, removeRoutePoint, setRoutePoints, saveRoute } = useStore();
+
+    const { places, routePoints, addRoutePoint, removeRoutePoint, setRoutePoints, saveRoute, clearRoute } = useStore();
 
     const handleClose = () => { if (onClose) onClose(); };
 
@@ -99,18 +101,17 @@ export default function RoutePlannerForm({ onClose }) {
                 }}
             />
 
-            {/* Zde proběhla změna na background.paper a dynamický border */}
             <Paper variant="outlined" sx={{
                 borderRadius: 2,
                 bgcolor: 'background.paper',
                 p: 1,
                 height: '260px',
                 overflowY: 'auto',
-                overflowX: 'hidden', // Tohle tam máš, to je správně
-                boxSizing: 'border-box', // PŘIDAT: Zajistí, že padding se nepočítá do šířky
+                overflowX: 'hidden',
+                boxSizing: 'border-box',
                 flexShrink: 0,
                 borderColor: 'divider',
-                width: '100%' // PŘIDAT: Explicitní šířka pro jistotu
+                width: '100%'
             }}>
                 <List dense disablePadding>
                     {fixedPoint && (
@@ -133,25 +134,43 @@ export default function RoutePlannerForm({ onClose }) {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                onClick={() => {
-                    saveRoute({
-                        id: Date.now().toString(),
-                        name: `Trasa: ${fixedPoint?.title || 'Start'} -> ${draggablePoints.length > 0 ? draggablePoints[0].title : '...'}`,
-                        points: routePoints,
-                        date: new Date().toLocaleDateString()
-                    });
-                    handleClose();
-                }}
-                sx={{ mb: 1 }}
-            >
-                Uložit trasu
-            </Button>
+            {/* UPRAVENÝ SPODNÍ PANEL: Uložit a Smazat vedle sebe */}
+            <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                <Button
+                    variant="contained"
+                    size="large"
+                    sx={{ flex: 1 }}
+                    onClick={() => {
+                        saveRoute({
+                            id: Date.now().toString(),
+                            name: `Trasa: ${fixedPoint?.title || 'Start'} -> ${draggablePoints.length > 0 ? draggablePoints[0].title : '...'}`,
+                            points: routePoints,
+                            date: new Date().toLocaleDateString()
+                        });
 
-            <Button variant="outlined" color="inherit" size="large" fullWidth onClick={handleClose} sx={{ mb: 2 }}>
+                        clearRoute();
+                        handleClose();
+                    }}
+                >
+                    Uložit
+                </Button>
+
+                <Button
+                    variant="outlined"
+                    color="error"
+                    size="large"
+                    sx={{ flex: 1 }}
+                    startIcon={<DeleteIcon />}
+                    onClick={() => {
+                        clearRoute();
+                        handleClose();
+                    }}
+                >
+                    Smazat
+                </Button>
+            </Box>
+
+            <Button variant="outlined" color="inherit" size="large" fullWidth onClick={handleClose} sx={{ mb: 1 }}>
                 Zpět na přehled
             </Button>
         </Box>

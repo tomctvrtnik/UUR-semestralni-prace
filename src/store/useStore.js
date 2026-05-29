@@ -75,11 +75,29 @@ export const useStore = create((set) => ({
     isViewingCreatedPlaces: false,
     setIsViewingCreatedPlaces: (viewing) => set({ isViewingCreatedPlaces: viewing }),
 
+    clearRoute: () => set({
+        isPlanningRoute: false, // Vypne režim plánování na mapě
+        routePoints: [ // Vrátí pole s body do továrního nastavení
+            {
+                id: 'user-loc',
+                title: 'Moje poloha',
+                lat: 49.7475,
+                lng: 13.3776,
+                routeId: 'start',
+                isFixed: true
+            }
+        ]
+    }),
+
     // --- MOJE TRASY ---
     isViewingRoutes: false,
     setIsViewingRoutes: (isViewing) => set({ isViewingRoutes: isViewing }),
     savedRoutes: [],
     saveRoute: (route) => set((state) => ({ savedRoutes: [...state.savedRoutes, route] })),
+
+    removeRoute: (id) => set((state) => ({
+        savedRoutes: state.savedRoutes.filter(r => r.id !== id)
+    })),
 
     routePoints: [
         {
