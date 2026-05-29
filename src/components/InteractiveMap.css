@@ -118,3 +118,7 @@
 .leaflet-tile-pane {
     filter: grayscale(20%) contrast(1.1) brightness(1.05);
 }
+
+.dark-map-tiles {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
