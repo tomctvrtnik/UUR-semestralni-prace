@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
@@ -69,6 +69,8 @@ export default function Header() {
 
     const { isDarkMode, toggleDarkMode } = useStore();
     const theme = useTheme();
+
+    // Detekce zařízení
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const {
@@ -109,7 +111,6 @@ export default function Header() {
         setIsSearchModalOpen(false);
         clearViews();
         setSelectedPlace(place);
-
         setTimeout(() => {
             setMobileSnap(0.55);
         }, 100);
@@ -121,18 +122,77 @@ export default function Header() {
         )
         : [];
 
+    // --- SPOLEČNÉ POLOŽKY MENU (Pro mobil i počítač) ---
+    // whiteSpace: 'nowrap' zajišťuje, že se text nezalomí, když je menu smrsklé
+    const menuItems = (
+        <Box sx={{ width: 280, overflowX: 'hidden' }}>
+            <List>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMenuClick(() => setIsAddingPlace(true))}>
+                        <ListItemIcon><AddLocationAltIcon color="primary" /></ListItemIcon>
+                        <ListItemText primary="Přidat vlastní místo" sx={{ '& .MuiTypography-root': { fontWeight: 'bold' }, whiteSpace: 'nowrap' }} />
+                    </ListItemButton>
+                </ListItem>
+            </List>
+            <Divider />
+            <List>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMenuClick(() => setIsViewingVisited(true))}>
+                        <ListItemIcon><CheckCircleIcon /></ListItemIcon>
+                        <ListItemText primary="Mnou navštívené" sx={{ whiteSpace: 'nowrap' }} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMenuClick(() => setIsViewingRoutes(true))}>
+                        <ListItemIcon><MapIcon /></ListItemIcon>
+                        <ListItemText primary="Moje trasy" sx={{ whiteSpace: 'nowrap' }} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMenuClick(() => setIsPlanningRoute(true))}>
+                        <ListItemIcon><RouteIcon /></ListItemIcon>
+                        <ListItemText primary="Naplánovat trasu" sx={{ whiteSpace: 'nowrap' }} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMenuClick(() => setIsViewingCreatedPlaces(true))}>
+                        <ListItemIcon><PlaceIcon /></ListItemIcon>
+                        <ListItemText primary="Moje místa" sx={{ whiteSpace: 'nowrap' }} />
+                    </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                    <ListItemButton onClick={() => handleMenuClick()}>
+                        <ListItemIcon><InfoOutlinedIcon /></ListItemIcon>
+                        <ListItemText primary="O aplikaci" sx={{ whiteSpace: 'nowrap' }} />
+                    </ListItemButton>
+                </ListItem>
+            </List>
+        </Box>
+    );
+
     return (
         <>
-            <AppBar position="sticky" color="primary" sx={{ top: 0, zIndex: 9999 }}>
+            {/* HLAVIČKA - Zvýšený zIndex zajišťuje, že bude VŽDY nad postranním panelem */}
+            <AppBar position="sticky" color="primary" sx={{ top: 0, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 1, sm: 2 } }}>
 
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 1 }} onClick={() => setIsMenuOpen(true)}>
+                        {/* Hamburger se zobrazí JEN NA MOBILU (xs: flex, md: none) */}
+                        <IconButton
+                            size="large"
+                            edge="start"
+                            color="inherit"
+                            aria-label="menu"
+                            sx={{ mr: 1, display: { xs: 'flex', md: 'none' } }}
+                            onClick={() => setIsMenuOpen(true)}
+                        >
                             <MenuIcon />
                         </IconButton>
+
                         <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', mr: 4 }}>
                             Objevuj
                         </Typography>
+
                         <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
                             <PersonIcon sx={{ fontSize: 36, mr: 1, opacity: 0.9 }} />
                             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -173,6 +233,7 @@ export default function Header() {
                 </Toolbar>
             </AppBar>
 
+            {/* FULLSCREEN MODAL (zůstává beze změn) */}
             <Dialog
                 fullScreen
                 open={isSearchModalOpen}
@@ -186,7 +247,6 @@ export default function Header() {
                             <ArrowBackIcon />
                         </IconButton>
                         <form onSubmit={(e) => { e.preventDefault(); handleConfirmSearch(); }} style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
-                            {/* OPRAVA: Magický "key", který vynutí zbrusu nové pole při každém otevření okna */}
                             <InputBase
                                 key={isSearchModalOpen ? 'search-active' : 'search-inactive'}
                                 autoFocus
@@ -200,43 +260,24 @@ export default function Header() {
                         {searchQuery && <IconButton onClick={() => setSearchQuery('')}><CloseIcon /></IconButton>}
                     </Toolbar>
                 </AppBar>
-
                 <Box sx={{ p: 2, bgcolor: 'background.default', height: '100%', overflowY: 'auto' }}>
                     {searchQuery ? (
                         <>
-                            <Button
-                                variant="outlined"
-                                fullWidth
-                                size="large"
-                                onClick={handleConfirmSearch}
-                                startIcon={<SearchIcon />}
-                                sx={{ mb: 3, py: 1.5, borderRadius: 2, fontSize: '1.1rem' }}
-                            >
+                            <Button variant="outlined" fullWidth size="large" onClick={handleConfirmSearch} startIcon={<SearchIcon />} sx={{ mb: 3, py: 1.5, borderRadius: 2, fontSize: '1.1rem' }}>
                                 Hledat: "{searchQuery}"
                             </Button>
-
                             {filteredPlaces.length > 0 && (
                                 <Box>
-                                    <Typography variant="h6" color="text.primary" gutterBottom>
-                                        Nalezená místa
-                                    </Typography>
+                                    <Typography variant="h6" color="text.primary" gutterBottom>Nalezená místa</Typography>
                                     {filteredPlaces.map((place) => (
-                                        <Card
-                                            key={place.id}
-                                            sx={{ mb: 2, cursor: 'pointer', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }}
-                                            onClick={() => handlePlaceClick(place)}
-                                        >
+                                        <Card key={place.id} sx={{ mb: 2, cursor: 'pointer', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }} onClick={() => handlePlaceClick(place)}>
                                             <CardContent>
                                                 <Typography variant="h6" color="text.primary">{place.title}</Typography>
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {place.category} • {place.distance} • {place.rating || 0} ★
-                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">{place.category} • {place.distance} • {place.rating || 0} ★</Typography>
                                                 {place.tags && place.tags.length > 0 && (
                                                     <Box sx={{ mt: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                                                         {place.tags.slice(0, 3).map(tag => (
-                                                            <Typography key={tag} variant="caption" sx={{ bgcolor: 'action.hover', px: 1, borderRadius: 1 }}>
-                                                                {tag}
-                                                            </Typography>
+                                                            <Typography key={tag} variant="caption" sx={{ bgcolor: 'action.hover', px: 1, borderRadius: 1 }}>{tag}</Typography>
                                                         ))}
                                                     </Box>
                                                 )}
@@ -245,40 +286,78 @@ export default function Header() {
                                     ))}
                                 </Box>
                             )}
-
-                            {filteredPlaces.length === 0 && (
-                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-                                    Žádné místo odpovídající "{searchQuery}" jsme nenašli.
-                                </Typography>
-                            )}
+                            {filteredPlaces.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>Žádné místo jsme nenašli.</Typography>}
                         </>
-                    ) : (
-                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-                            Začněte psát pro vyhledávání...
-                        </Typography>
-                    )}
+                    ) : <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>Začněte psát...</Typography>}
                 </Box>
             </Dialog>
 
-            <Drawer anchor="left" open={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
+            {/* --- 1. MOBILNÍ HAMBURGER MENU (Zobrazí se jen na malých displejích) --- */}
+            <Drawer
+                anchor="left"
+                open={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
+                sx={{ display: { xs: 'block', md: 'none' } }}
+            >
                 <Box sx={{ width: 280 }} role="presentation">
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2 }}>
                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>Menu</Typography>
                         <IconButton onClick={() => setIsMenuOpen(false)}><ChevronLeftIcon /></IconButton>
                     </Box>
                     <Divider />
-                    <List>
-                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsAddingPlace(true))}><ListItemIcon><AddLocationAltIcon color="primary" /></ListItemIcon><ListItemText primary="Přidat vlastní místo" sx={{ '& .MuiTypography-root': { fontWeight: 'bold' } }} /></ListItemButton></ListItem>
-                    </List>
-                    <Divider />
-                    <List>
-                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsViewingVisited(true))}><ListItemIcon><CheckCircleIcon /></ListItemIcon><ListItemText primary="Mnou navštívené" /></ListItemButton></ListItem>
-                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsViewingRoutes(true))}><ListItemIcon><MapIcon /></ListItemIcon><ListItemText primary="Moje trasy" /></ListItemButton></ListItem>
-                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsPlanningRoute(true))}><ListItemIcon><RouteIcon /></ListItemIcon><ListItemText primary="Naplánovat trasu" /></ListItemButton></ListItem>
-                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsViewingCreatedPlaces(true))}><ListItemIcon><PlaceIcon /></ListItemIcon><ListItemText primary="Moje místa" /></ListItemButton></ListItem>
-                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick()}><ListItemIcon><InfoOutlinedIcon /></ListItemIcon><ListItemText primary="O aplikaci" /></ListItemButton></ListItem>
-                    </List>
+                    {menuItems}
                 </Box>
+            </Drawer>
+
+            {/* --- 2. POČÍTAČOVÝ HOVER PANEL (Zobrazí se jen na velkých displejích) --- */}
+            <Drawer
+                variant="permanent"
+                sx={{
+                    display: { xs: 'none', md: 'block' },
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    '& .MuiDrawer-paper': {
+                        width: 65,
+                        overflowX: 'hidden',
+                        transition: theme.transitions.create('width', {
+                            easing: theme.transitions.easing.sharp,
+                            duration: theme.transitions.duration.leavingScreen,
+                        }),
+                        boxShadow: '2px 0 5px rgba(0,0,0,0.05)',
+                        borderRight: 'none',
+
+                        // NOVÉ: Skryje text, když je panel smrsknutý
+                        '& .MuiListItemText-root': {
+                            opacity: 0,
+                            transition: theme.transitions.create('opacity', {
+                                easing: theme.transitions.easing.sharp,
+                                duration: theme.transitions.duration.leavingScreen,
+                            }),
+                        },
+
+                        // Magie: Při najetí myší se roztáhne a ukáže text
+                        '&:hover': {
+                            width: 280,
+                            transition: theme.transitions.create('width', {
+                                easing: theme.transitions.easing.sharp,
+                                duration: theme.transitions.duration.enteringScreen,
+                            }),
+                            boxShadow: '4px 0 15px rgba(0,0,0,0.15)',
+
+                            // NOVÉ: Znovu zviditelní text po rozbalení
+                            '& .MuiListItemText-root': {
+                                opacity: 1,
+                                transition: theme.transitions.create('opacity', {
+                                    easing: theme.transitions.easing.sharp,
+                                    duration: theme.transitions.duration.enteringScreen,
+                                }),
+                            }
+                        }
+                    }
+                }}
+            >
+                <Toolbar />
+                {menuItems}
             </Drawer>
         </>
     );
