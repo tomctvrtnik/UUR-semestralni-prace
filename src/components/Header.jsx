@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react'; // <-- ZDE PŘIDÁN useRef
+import React, { useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider,
-    InputBase, styled, Dialog, Slide, useMediaQuery, useTheme
+    InputBase, styled, Dialog, Slide, useMediaQuery, useTheme, Button
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
@@ -65,12 +65,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-
-    // NOVÉ: Reference na vyhledávací pole, abychom ho mohli ovládat ručně
     const searchInputRef = useRef(null);
 
     const { isDarkMode, toggleDarkMode } = useStore();
-
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -97,6 +94,16 @@ export default function Header() {
     const openSearch = () => {
         setMobileSnap(0.17);
         setIsSearchModalOpen(true);
+    };
+
+    // NOVÉ: Funkce pro potvrzení hledání (zavře okno a vytáhne šuplík s výsledky)
+    const handleConfirmSearch = () => {
+        setIsSearchModalOpen(false); // Schová překryvné okno
+
+        // Zpoždění zajistí, že animace zavření nejdřív proběhne, a pak vytáhneme šuplík
+        setTimeout(() => {
+            setMobileSnap(0.55);
+        }, 100);
     };
 
     return (
@@ -133,29 +140,15 @@ export default function Header() {
                         </Box>
                     </Box>
 
-                    <Box sx={{
-                        width: { xs: '100%', md: '400px' },
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: 2,
-                        px: { xs: 1, md: 2 }
-                    }}>
-                        <Search
-                            onClick={isMobile ? openSearch : undefined}
-                            sx={{ cursor: isMobile ? 'pointer' : 'text' }}
-                        >
+                    <Box sx={{ width: { xs: '100%', md: '400px' }, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, px: { xs: 1, md: 2 } }}>
+                        <Search onClick={isMobile ? openSearch : undefined} sx={{ cursor: isMobile ? 'pointer' : 'text' }}>
                             <SearchIconWrapper>
                                 <SearchIcon />
                             </SearchIconWrapper>
 
                             {isMobile ? (
                                 <>
-                                    <Box sx={{
-                                        py: 1.2, pl: 6, pr: 4, width: '100%',
-                                        color: searchQuery ? 'inherit' : 'text.secondary',
-                                        boxSizing: 'border-box'
-                                    }}>
+                                    <Box sx={{ py: 1.2, pl: 6, pr: 4, width: '100%', color: searchQuery ? 'inherit' : 'text.secondary', boxSizing: 'border-box' }}>
                                         {searchQuery || "Hledat"}
                                     </Box>
 
@@ -181,12 +174,7 @@ export default function Header() {
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     endAdornment={
                                         searchQuery ? (
-                                            <IconButton
-                                                size="small"
-                                                aria-label="vymazat hledání"
-                                                onClick={() => setSearchQuery('')}
-                                                sx={{ color: '#009FB7', mr: 0.5 }}
-                                            >
+                                            <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ color: '#009FB7', mr: 0.5 }}>
                                                 <CloseIcon fontSize="small" />
                                             </IconButton>
                                         ) : null
@@ -208,10 +196,8 @@ export default function Header() {
                 open={isSearchModalOpen}
                 onClose={() => setIsSearchModalOpen(false)}
                 TransitionComponent={Transition}
-                // TOTO JE OPRAVA: Vypne agresivní hlídání kurzoru
                 disableEnforceFocus
                 disableRestoreFocus
-                // Focus se provede hladce až PO dokončení animace modal okna
                 TransitionProps={{
                     onEntered: () => {
                         if (searchInputRef.current) {
@@ -223,22 +209,28 @@ export default function Header() {
             >
                 <AppBar position="static" color="inherit" elevation={1}>
                     <Toolbar>
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            onClick={() => setIsSearchModalOpen(false)}
-                            aria-label="close"
-                        >
+                        <IconButton edge="start" color="inherit" onClick={() => setIsSearchModalOpen(false)} aria-label="close">
                             <ArrowBackIcon />
                         </IconButton>
-                        <InputBase
-                            inputRef={searchInputRef} // Připojená reference místo obyčejného autoFocus
-                            sx={{ ml: 1, flex: 1, fontSize: '1.1rem' }}
-                            placeholder="Hledat"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            inputProps={{ 'aria-label': 'search real' }}
-                        />
+
+                        {/* ZDE JE OPRAVA: Obalení do formuláře aktivuje tlačítko "Hledat/Enter" na klávesnici */}
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault(); // Zabrání refreshe stránky
+                                handleConfirmSearch(); // Potvrdí hledání
+                            }}
+                            style={{ display: 'flex', width: '100%', alignItems: 'center' }}
+                        >
+                            <InputBase
+                                inputRef={searchInputRef}
+                                sx={{ ml: 1, flex: 1, fontSize: '1.1rem' }}
+                                placeholder="Hledat"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                inputProps={{ 'aria-label': 'search real' }}
+                            />
+                        </form>
+
                         {searchQuery && (
                             <IconButton onClick={() => setSearchQuery('')}>
                                 <CloseIcon />
@@ -247,10 +239,24 @@ export default function Header() {
                     </Toolbar>
                 </AppBar>
 
+                {/* Tělo modalu s tlačítkem pro potvrzení */}
                 <Box sx={{ p: 2, bgcolor: 'background.default', height: '100%', overflowY: 'auto' }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-                        {searchQuery ? "Hledám: " + searchQuery : "Začněte psát pro vyhledávání..."}
-                    </Typography>
+                    {searchQuery ? (
+                        <Button
+                            variant="outlined"
+                            fullWidth
+                            size="large"
+                            onClick={handleConfirmSearch}
+                            startIcon={<SearchIcon />}
+                            sx={{ mt: 2, py: 1.5, borderRadius: 2, fontSize: '1.1rem' }}
+                        >
+                            Hledat: "{searchQuery}"
+                        </Button>
+                    ) : (
+                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                            Začněte psát pro vyhledávání...
+                        </Typography>
+                    )}
                 </Box>
             </Dialog>
 
