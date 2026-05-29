@@ -34,6 +34,8 @@ const Search = styled('div')(({ theme }) => ({
     width: '100%',
 }));
 
+
+
 const SearchIconWrapper = styled('div')(({ theme }) => ({
     padding: theme.spacing(0, 2),
     height: '100%',
@@ -71,7 +73,8 @@ export default function Header() {
         setIsViewingRoutes,
         setIsViewingVisited, // <--- DOPLNĚNO ZDE
         setIsViewingCreatedPlaces,
-        clearViews
+        clearViews,
+        setMobileSnap
     } = useStore();
 
     const handleAddPlaceClick = () => {
@@ -128,7 +131,7 @@ export default function Header() {
                         gap: 2,                   // TADY JE TA ZMĚNA: vytvoří mezeru mezi vyhledáváním a ikonou
                         px: { xs: 1, md: 2 }      // Upravený padding, aby to nebylo nalepené na krajích
                     }}>
-                        <Search>
+                        <Search onFocus={() => setMobileSnap(0.1)}>
                             <SearchIconWrapper>
                                 <SearchIcon />
                             </SearchIconWrapper>
