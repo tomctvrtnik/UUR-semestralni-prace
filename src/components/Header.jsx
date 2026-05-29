@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'; // <-- ZDE PŘIDÁN useEffect
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
@@ -66,7 +66,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-    const searchInputRef = useRef(null);
 
     const { isDarkMode, toggleDarkMode } = useStore();
     const theme = useTheme();
@@ -121,19 +120,6 @@ export default function Header() {
             place.title && place.title.toLowerCase().includes(searchQuery.toLowerCase())
         )
         : [];
-
-    // NOVÉ: Vlastní blbuvzdorný hlídač pro Focus políčka
-    useEffect(() => {
-        if (isSearchModalOpen) {
-            // Počkáme chvilku, než se okno bezpečně vyrenderuje a začne animace
-            const focusTimer = setTimeout(() => {
-                if (searchInputRef.current) {
-                    searchInputRef.current.focus();
-                }
-            }, 100);
-            return () => clearTimeout(focusTimer);
-        }
-    }, [isSearchModalOpen]);
 
     return (
         <>
@@ -192,10 +178,6 @@ export default function Header() {
                 open={isSearchModalOpen}
                 onClose={() => setIsSearchModalOpen(false)}
                 TransitionComponent={Transition}
-                // OPRAVA: Tři jezdci apokalypsy MUI Dialogu – vypnutí všech zámků!
-                disableAutoFocus
-                disableEnforceFocus
-                disableRestoreFocus
                 sx={{ zIndex: 10000 }}
             >
                 <AppBar position="static" color="inherit" elevation={1}>
@@ -204,8 +186,10 @@ export default function Header() {
                             <ArrowBackIcon />
                         </IconButton>
                         <form onSubmit={(e) => { e.preventDefault(); handleConfirmSearch(); }} style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
+                            {/* OPRAVA: Magický "key", který vynutí zbrusu nové pole při každém otevření okna */}
                             <InputBase
-                                inputRef={searchInputRef}
+                                key={isSearchModalOpen ? 'search-active' : 'search-inactive'}
+                                autoFocus
                                 sx={{ ml: 1, flex: 1, fontSize: '1.1rem' }}
                                 placeholder="Hledat místa..."
                                 value={searchQuery}
