@@ -138,6 +138,13 @@ export default function Header() {
                                 inputProps={{ 'aria-label': 'search' }}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                // MAGICKÝ FIX PRO MOBILY:
+                                onBlur={() => {
+                                    // Počkáme 50ms, než klávesnice začne mizet, a pak natvrdo srovnáme obrazovku
+                                    setTimeout(() => {
+                                        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                                    }, 50);
+                                }}
                                 endAdornment={
                                     searchQuery ? (
                                         <IconButton
