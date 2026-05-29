@@ -4,7 +4,6 @@ import Sidebar from './Sidebar';
 import { useStore } from '../store/useStore';
 
 export default function MobileBottomSheet() {
-    // Sjednocené a bezpečné hodnoty
     const snapPoints = [0.20, 0.5, 0.98];
     const { mobileSnap, setMobileSnap } = useStore();
     const theme = useTheme();
@@ -15,13 +14,15 @@ export default function MobileBottomSheet() {
             activeSnapPoint={mobileSnap}
             setActiveSnapPoint={(val) => {
                 if (val === null || val === undefined) {
-                    setMobileSnap(0.20); // Sjednoceno
+                    setMobileSnap(0.20);
                 } else {
                     setMobileSnap(val);
                 }
             }}
             onOpenChange={(isOpen) => {
-                if (!isOpen) setMobileSnap(0.5); // Sjednoceno
+                // OPRAVA 1: Když uživatel prudce swipne dolů (pokus o zavření), 
+                // pošleme šuplík na nejnižší bod (0.20), NIKOLIV do půlky!
+                if (!isOpen) setMobileSnap(0.20);
             }}
             open={true}
             dismissible={false}
@@ -34,7 +35,7 @@ export default function MobileBottomSheet() {
                     inset: 0,
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     zIndex: 1000,
-                    pointerEvents: mobileSnap === 0.98 ? 'auto' : 'none' // Sjednoceno
+                    pointerEvents: mobileSnap === 0.98 ? 'auto' : 'none'
                 }}
             />
 
@@ -44,7 +45,8 @@ export default function MobileBottomSheet() {
                         display: 'flex', flexDirection: 'column',
                         backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.paper : '#FDFFF7',
                         borderTopLeftRadius: '20px', borderTopRightRadius: '20px',
-                        height: '92dvh', // Odpovídá 0.92
+                        // OPRAVA 2: Výška MUSÍ přesně odpovídat hornímu snap pointu!
+                        height: '98dvh',
                         position: 'fixed', bottom: 0, left: 0, right: 0,
                         zIndex: 1001, boxShadow: '0px -5px 25px rgba(0,0,0,0.2)',
                     }}
