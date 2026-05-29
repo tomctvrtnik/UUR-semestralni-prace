@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
@@ -18,16 +18,17 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import MapIcon from '@mui/icons-material/Map';
 import PlaceIcon from '@mui/icons-material/Place';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
-// --- ANIMACE PRO FULLSCREEN VYHLEDÁVÁNÍ ---
+import AboutDialog from './AboutDialog';
+
+// Animace pro vysunutí vyhledávacího okna
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-// --- STYLY PRO VYHLEDÁVACÍ POLE ---
+// Styly pro vyhledávací komponentu
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
     borderRadius: theme.shape.borderRadius * 2,
@@ -61,7 +62,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
         width: '100%',
     },
 }));
-// ----------------------------------
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -69,8 +69,6 @@ export default function Header() {
 
     const { isDarkMode, toggleDarkMode } = useStore();
     const theme = useTheme();
-
-    // Detekce zařízení
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const {
@@ -84,9 +82,12 @@ export default function Header() {
         clearViews,
         setMobileSnap,
         setSelectedPlace,
+        isAboutOpen,
+        setIsAboutOpen,
         places = []
     } = useStore();
 
+    // Zavře menu a resetuje snap mapy
     const handleMenuClick = (actionFn) => {
         setIsMenuOpen(false);
         if (actionFn) actionFn();
@@ -122,8 +123,7 @@ export default function Header() {
         )
         : [];
 
-    // --- SPOLEČNÉ POLOŽKY MENU (Pro mobil i počítač) ---
-    // whiteSpace: 'nowrap' zajišťuje, že se text nezalomí, když je menu smrsklé
+    // Seznam položek pro menu (zobrazuje se v Draweru)
     const menuItems = (
         <Box sx={{ width: 280, overflowX: 'hidden' }}>
             <List>
@@ -161,7 +161,7 @@ export default function Header() {
                     </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
-                    <ListItemButton onClick={() => handleMenuClick()}>
+                    <ListItemButton onClick={() => handleMenuClick(() => setIsAboutOpen(true))}>
                         <ListItemIcon><InfoOutlinedIcon /></ListItemIcon>
                         <ListItemText primary="O aplikaci" sx={{ whiteSpace: 'nowrap' }} />
                     </ListItemButton>
@@ -172,12 +172,10 @@ export default function Header() {
 
     return (
         <>
-            {/* HLAVIČKA - Zvýšený zIndex zajišťuje, že bude VŽDY nad postranním panelem */}
+            {/* Hlavní lišta s navigací */}
             <AppBar position="sticky" color="primary" sx={{ top: 0, zIndex: (theme) => theme.zIndex.drawer + 1 }}>
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 1, sm: 2 } }}>
-
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        {/* Hamburger se zobrazí JEN NA MOBILU (xs: flex, md: none) */}
                         <IconButton
                             size="large"
                             edge="start"
@@ -195,14 +193,14 @@ export default function Header() {
                             sx={{
                                 fontWeight: 'bold',
                                 mr: 4,
-                                cursor: 'pointer', // Myš se změní na ručičku, aby bylo jasné, že jde kliknout
-                                '&:hover': { opacity: 0.8 } // Jemně to pohasne, když na to najedeš myší
+                                cursor: 'pointer',
+                                '&:hover': { opacity: 0.8 }
                             }}
                             onClick={() => {
-                                clearViews();           // Zavře všechny zobrazené panely (přidávání, trasy...)
-                                setSelectedPlace(null); // Odznačí konkrétní místo a vrátí tě na hlavní seznam
-                                setSearchQuery('');     // Vyčistí případný text ve vyhledávání
-                                setMobileSnap(0.55);    // Na mobilu srovná šuplík na výchozí pozici
+                                clearViews();
+                                setSelectedPlace(null);
+                                setSearchQuery('');
+                                setMobileSnap(0.55);
                             }}
                         >
                             Objevuj
@@ -248,7 +246,7 @@ export default function Header() {
                 </Toolbar>
             </AppBar>
 
-            {/* FULLSCREEN MODAL (zůstává beze změn) */}
+            {/* Vyhledávací okno přes celou obrazovku */}
             <Dialog
                 fullScreen
                 open={isSearchModalOpen}
@@ -309,7 +307,7 @@ export default function Header() {
                 </Box>
             </Dialog>
 
-            {/* --- 1. MOBILNÍ HAMBURGER MENU (Zobrazí se jen na malých displejích) --- */}
+            {/* Mobilní menu */}
             <Drawer
                 anchor="left"
                 open={isMenuOpen}
@@ -326,7 +324,7 @@ export default function Header() {
                 </Box>
             </Drawer>
 
-            {/* --- 2. POČÍTAČOVÝ HOVER PANEL (Zobrazí se jen na velkých displejích) --- */}
+            {/* Počítačové permanentní menu */}
             <Drawer
                 variant="permanent"
                 sx={{
@@ -342,8 +340,6 @@ export default function Header() {
                         }),
                         boxShadow: '2px 0 5px rgba(0,0,0,0.05)',
                         borderRight: 'none',
-
-                        // NOVÉ: Skryje text, když je panel smrsknutý
                         '& .MuiListItemText-root': {
                             opacity: 0,
                             transition: theme.transitions.create('opacity', {
@@ -351,8 +347,6 @@ export default function Header() {
                                 duration: theme.transitions.duration.leavingScreen,
                             }),
                         },
-
-                        // Magie: Při najetí myší se roztáhne a ukáže text
                         '&:hover': {
                             width: 280,
                             transition: theme.transitions.create('width', {
@@ -360,8 +354,6 @@ export default function Header() {
                                 duration: theme.transitions.duration.enteringScreen,
                             }),
                             boxShadow: '4px 0 15px rgba(0,0,0,0.15)',
-
-                            // NOVÉ: Znovu zviditelní text po rozbalení
                             '& .MuiListItemText-root': {
                                 opacity: 1,
                                 transition: theme.transitions.create('opacity', {
@@ -376,6 +368,12 @@ export default function Header() {
                 <Toolbar />
                 {menuItems}
             </Drawer>
+
+            {/* Dialog s informacemi */}
+            <AboutDialog
+                open={isAboutOpen}
+                onClose={() => setIsAboutOpen(false)}
+            />
         </>
     );
 }

@@ -7,7 +7,7 @@ import { useStore } from '../store/useStore';
 import { useMediaQuery, useTheme, Fab } from '@mui/material';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 
-// --- POMOCNÁ FUNKCE PRO VZDÁLENOST ---
+// Pomocná funkce pro převod textové vzdálenosti (např. '500m' nebo '2km') na číslo v km
 const getDistanceInKm = (distanceStr) => {
     if (!distanceStr) return 0;
     const val = parseFloat(distanceStr);
@@ -15,7 +15,7 @@ const getDistanceInKm = (distanceStr) => {
     return val / 1000;
 };
 
-// --- DEFINICE IKON ---
+// Definice ikon pro mapu pomocí HTML šablon
 const redIcon = L.divIcon({
     className: 'custom-pin-wrapper',
     html: '<div class="custom-pin"></div>',
@@ -48,7 +48,7 @@ const userIcon = L.divIcon({
     popupAnchor: [0, -20]
 });
 
-// --- KOMPONENTA: TLAČÍTKO PRO VYCENTROVÁNÍ NA POLOHU ---
+// Tlačítko pro návrat na výchozí polohu uživatele
 function LocateMeButton() {
     const map = useMap();
     const theme = useTheme();
@@ -64,14 +64,13 @@ function LocateMeButton() {
         });
     };
 
-    // NEPRŮSTŘELNÝ FIX: Obaleno v čistém <div> s inline styly
     return (
         <div style={{
             position: 'absolute',
             right: '16px',
             top: isMobile ? '16px' : 'auto',
             bottom: isMobile ? 'auto' : '24px',
-            zIndex: 9999 // Vynutí zobrazení nad všemi vrstvami Leafletu
+            zIndex: 9999
         }}>
             <Fab
                 aria-label="moje poloha"
@@ -91,7 +90,7 @@ function LocateMeButton() {
     );
 }
 
-// --- ZACHYTÁVÁNÍ KLIKNUTÍ A ZOOMU ---
+// Zachytává interakce uživatele s mapou (kliknutí pro přidání místa nebo reset výběru)
 function MapEvents({ onZoomChange }) {
     const { isPlanningRoute, isAddingPlace, setDraftLocation, setSelectedPlace, setMobileSnap } = useStore();
 
@@ -114,7 +113,7 @@ function MapEvents({ onZoomChange }) {
     return null;
 }
 
-// --- KONTROLÉR PRO KAMERU ---
+// Zajišťuje animovaný přesun kamery na vybrané místo a resize mapy při změně okna
 function MapController() {
     const map = useMap();
     const theme = useTheme();
@@ -126,6 +125,7 @@ function MapController() {
             const targetZoom = 16;
             const targetPoint = map.project([selectedPlace.lat, selectedPlace.lng], targetZoom);
 
+            // Pokud je mobil, posuneme střed mapy, aby místo nebylo pod panelem
             if (isMobile) {
                 const yOffset = map.getSize().y / 4;
                 targetPoint.y += yOffset;
@@ -152,7 +152,6 @@ function MapController() {
     return null;
 }
 
-// =========================================================
 export default function InteractiveMap() {
     const mapCenter = [49.745, 13.377];
     const mockedUserLocation = [49.7475, 13.3776];
@@ -161,26 +160,13 @@ export default function InteractiveMap() {
     const SHOW_LABELS_ZOOM_THRESHOLD = 16;
 
     const {
-        places,
-        setSelectedPlace,
-        searchQuery,
-        activeCategories,
-        setMobileSnap,
-        isAddingPlace,
-        draftLocation,
-        isPlanningRoute,
-        routePoints,
-        addRoutePoint,
-        isViewingVisited,
-        isViewingCreatedPlaces,
-        maxDistance,
-        hideVisited,
-        minRating,
-        activeTags,
-        isDarkMode
+        places, setSelectedPlace, searchQuery, activeCategories, setMobileSnap,
+        isAddingPlace, draftLocation, isPlanningRoute, routePoints, addRoutePoint,
+        isViewingVisited, isViewingCreatedPlaces, maxDistance, hideVisited,
+        minRating, activeTags, isDarkMode
     } = useStore();
 
-    // --- FILTRAČNÍ LOGIKA ---
+    // Logika pro filtrování seznamu míst podle aktivních filtrů
     let filteredPlaces = [];
 
     if (isViewingVisited) {
@@ -207,7 +193,7 @@ export default function InteractiveMap() {
     return (
         <MapContainer center={mapCenter} zoom={currentZoom} zoomControl={false} style={{ height: '100%', width: '100%', zIndex: 0 }}>
 
-            {/* Dynamický mapový podklad podle režimu */}
+            {/* Přepínání mezi světlým a tmavým podkladem mapy */}
             {isDarkMode ? (
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -226,7 +212,7 @@ export default function InteractiveMap() {
 
             <Marker position={mockedUserLocation} icon={userIcon} zIndexOffset={1000} />
 
-            {/* TRASA */}
+            {/* Vykreslení trasy pomocí spojnice bodů */}
             {isPlanningRoute && (
                 <>
                     {routeCoordinates.length > 1 && (
@@ -245,7 +231,7 @@ export default function InteractiveMap() {
                 </>
             )}
 
-            {/* BĚŽNÁ MÍSTA */}
+            {/* Vykreslení jednotlivých míst jako markerů */}
             {filteredPlaces.map((place) => (
                 <Marker
                     key={place.id}
@@ -262,6 +248,7 @@ export default function InteractiveMap() {
                         }
                     }}
                 >
+                    {/* Zobrazení popisku pouze při dostatečném přiblížení */}
                     {currentZoom >= SHOW_LABELS_ZOOM_THRESHOLD && (
                         <Tooltip permanent direction="bottom" offset={[0, 0]} className="custom-tooltip-label">
                             {place.title}
@@ -270,11 +257,11 @@ export default function InteractiveMap() {
                 </Marker>
             ))}
 
+            {/* Marker pro nové místo, které uživatel právě přidává */}
             {isAddingPlace && draftLocation && (
                 <Marker position={[draftLocation.lat, draftLocation.lng]} icon={draftIcon} zIndexOffset={1000} />
             )}
 
-            {/* TLAČÍTKO PRO NÁVRAT NA POLOHU */}
             <LocateMeButton />
 
         </MapContainer>

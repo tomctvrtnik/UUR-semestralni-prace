@@ -1,13 +1,13 @@
-// --- KOMPONENTA: TLAČÍTKO PRO VYCENTROVÁNÍ NA POLOHU ---
+// Komponenta pro návrat na polohu uživatele
 function LocateMeButton() {
-    const map = useMap();
+    const map = useMap(); // Přístup k instanci mapy pro ovládání kamery
     const theme = useTheme();
-    // Přímá detekce mobilu v JavaScriptu
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Detekce mobilu pro responzivitu
 
     const userLat = 49.7475;
     const userLng = 13.3776;
 
+    // Animovaný přelet kamery na souřadnice
     const handleLocate = () => {
         map.flyTo([userLat, userLng], 15, {
             animate: true,
@@ -23,7 +23,7 @@ function LocateMeButton() {
             sx={{
                 position: 'absolute',
                 right: 16,
-                // TVRDÁ LOGIKA: Pokud je mobil, dej top: 16 a smaž bottom. Jinak naopak.
+                // Responsivní pozice: na mobilu nahoře, na PC dole
                 ...(isMobile ? { top: 16, bottom: 'auto' } : { top: 'auto', bottom: 24 }),
                 zIndex: 1000,
                 backgroundColor: '#FDFFF7',

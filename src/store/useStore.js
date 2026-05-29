@@ -9,7 +9,9 @@ export const useStore = create((set) => ({
     searchQuery: '',
     setSearchQuery: (query) => set({ searchQuery: query }),
 
-    // --- ÚKLID POHLEDŮ (Zabrání překrývání) ---
+    // --- ÚKLID POHLEDŮ ---
+    // Tato funkce vynuluje všechny aktivní stavy zobrazení.
+    // Důležité pro to, aby se v sidebar neotvíraly formuláře přes sebe.
     clearViews: () => set({
         selectedPlace: null,
         isAddingPlace: false,
@@ -18,8 +20,6 @@ export const useStore = create((set) => ({
         isViewingVisited: false,
         isViewingCreatedPlaces: false
     }),
-
-
 
     activeCategories: [],
     toggleCategory: (category) => set((state) => {
@@ -39,8 +39,8 @@ export const useStore = create((set) => ({
     mobileSnap: 0.5,
     setMobileSnap: (snap) => set({ mobileSnap: snap }),
 
-    // --- NOVÉ FILTRY ---
-    maxDistance: 50, // Výchozí hodnota slideru (do 50 km)
+    // --- FILTRY ---
+    maxDistance: 50,
     setMaxDistance: (dist) => set({ maxDistance: dist }),
 
     hideVisited: false,
@@ -58,12 +58,15 @@ export const useStore = create((set) => ({
         }
     }),
 
-    // --- PŘIDÁVÁNÍ MÍSTA ---
+    // --- STAVY POHLEDŮ ---
     isAddingPlace: false,
     setIsAddingPlace: (isAdding) => set({ isAddingPlace: isAdding, selectedPlace: null }),
 
     draftLocation: null,
     setDraftLocation: (location) => set({ draftLocation: location }),
+
+    isAboutOpen: false,
+    setIsAboutOpen: (isOpen) => set({ isAboutOpen: isOpen }),
 
     // --- PLÁNOVAČ TRAS ---
     isPlanningRoute: false,
@@ -75,9 +78,10 @@ export const useStore = create((set) => ({
     isViewingCreatedPlaces: false,
     setIsViewingCreatedPlaces: (viewing) => set({ isViewingCreatedPlaces: viewing }),
 
+    // Resetuje trasu do výchozího stavu (pouze moje poloha)
     clearRoute: () => set({
-        isPlanningRoute: false, // Vypne režim plánování na mapě
-        routePoints: [ // Vrátí pole s body do továrního nastavení
+        isPlanningRoute: false,
+        routePoints: [
             {
                 id: 'user-loc',
                 title: 'Moje poloha',
@@ -95,10 +99,12 @@ export const useStore = create((set) => ({
     savedRoutes: [],
     saveRoute: (route) => set((state) => ({ savedRoutes: [...state.savedRoutes, route] })),
 
+    // Smaže trasu ze seznamu uložených tras
     removeRoute: (id) => set((state) => ({
         savedRoutes: state.savedRoutes.filter(r => r.id !== id)
     })),
 
+    // Body aktuálně plánované trasy
     routePoints: [
         {
             id: 'user-loc',
@@ -123,13 +129,12 @@ export const useStore = create((set) => ({
     showMockRoute: false,
     setShowMockRoute: (show) => set({ showMockRoute: show }),
 
-    // --- HODNOCENÍ A NAVŠTÍVENO ---
-    // --- HODNOCENÍ A NAVŠTÍVENO ---
+    // --- DATA MÍST ---
+    // Přepne příznak navštívení u místa a aktualizuje i detail, pokud je otevřený
     toggleVisited: (id) => set((state) => {
         const updatedPlaces = state.places.map(p =>
             p.id === id ? { ...p, isVisited: !p.isVisited } : p
         );
-        // Aktualizujeme i selectedPlace, pokud je to to samé místo
         const updatedSelected = state.selectedPlace?.id === id
             ? updatedPlaces.find(p => p.id === id)
             : state.selectedPlace;
@@ -137,11 +142,11 @@ export const useStore = create((set) => ({
         return { places: updatedPlaces, selectedPlace: updatedSelected };
     }),
 
+    // Nastaví hodnocení a automaticky označí místo jako navštívené
     setRating: (id, rating) => set((state) => {
         const updatedPlaces = state.places.map(p =>
             p.id === id ? { ...p, rating: rating, isVisited: true } : p
         );
-        // Aktualizujeme i selectedPlace, pokud je to to samé místo
         const updatedSelected = state.selectedPlace?.id === id
             ? updatedPlaces.find(p => p.id === id)
             : state.selectedPlace;
@@ -149,14 +154,14 @@ export const useStore = create((set) => ({
         return { places: updatedPlaces, selectedPlace: updatedSelected };
     }),
 
-    // --- ADD PLACE ---
+    // Přidá nové místo vytvořené uživatelem
     addPlace: (newPlaceData) => set((state) => {
         const newPlace = {
             ...newPlaceData,
             id: Date.now().toString(),
             rating: 0,
             distance: '0 m',
-            isCreatedByUser: true // <--- PŘIDÁNO: Označení vlastního místa
+            isCreatedByUser: true
         };
         return {
             places: [...state.places, newPlace],
@@ -166,10 +171,9 @@ export const useStore = create((set) => ({
         };
     }),
 
-    // --- SMAZÁNÍ VLASTNÍHO MÍSTA ---
+    // Odstraní uživatelem vytvořené místo
     removePlace: (id) => set((state) => ({
         places: state.places.filter(p => p.id !== id),
-        // Pokud zrovna prohlížíme detail místa, které mažeme, tak ho zavřeme
         selectedPlace: state.selectedPlace?.id === id ? null : state.selectedPlace
     })),
 }));

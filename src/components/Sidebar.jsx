@@ -8,6 +8,7 @@ import { useStore } from '../store/useStore';
 import AddPlaceForm from './AddPlaceForm';
 import RoutePlannerForm from './RoutePlannerForm';
 
+// Pomocné funkce pro výpočty vzdáleností
 const getDistanceInKm = (distanceStr) => {
     if (!distanceStr) return 0;
     const val = parseFloat(distanceStr);
@@ -21,7 +22,6 @@ const getDistanceInMeters = (distanceStr) => {
 
 export default function Sidebar() {
     const [placeToDelete, setPlaceToDelete] = useState(null);
-    // <-- NOVÉ: Stav pro potvrzovací okno mazání trasy
     const [routeToDelete, setRouteToDelete] = useState(null);
 
     const {
@@ -31,9 +31,10 @@ export default function Sidebar() {
         isViewingVisited, setIsViewingVisited, isViewingCreatedPlaces, setIsViewingCreatedPlaces,
         removePlace, clearViews, maxDistance, setMaxDistance, hideVisited, setHideVisited,
         minRating, setMinRating, activeTags, toggleTag,
-        removeRoute // <-- NOVÉ: Vytažení funkce pro mazání
+        removeRoute
     } = useStore();
 
+    // Filtrování míst podle vyhledávání a nastavených filtrů
     let processedPlaces = places.filter(place => {
         const matchesSearch = place.title.toLowerCase().includes(searchQuery.toLowerCase());
         const placeCategories = Array.isArray(place.category) ? place.category : [place.category].filter(Boolean);
@@ -46,6 +47,7 @@ export default function Sidebar() {
         return matchesSearch && matchesCategory && matchesDistance && matchesHideVisited && matchesRating && matchesTags;
     });
 
+    // Řazení seznamu míst
     processedPlaces.sort((a, b) => {
         if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
         if (sortBy === 'distance') return getDistanceInMeters(a.distance) - getDistanceInMeters(b.distance);
@@ -53,6 +55,8 @@ export default function Sidebar() {
     });
 
     // --- POHLEDY ---
+
+    // Formulář pro přidání místa
     if (isAddingPlace) {
         return (
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
@@ -65,6 +69,7 @@ export default function Sidebar() {
         );
     }
 
+    // Seznam navštívených míst
     if (isViewingVisited) {
         const visitedPlaces = places.filter(p => p.isVisited);
         return (
@@ -92,6 +97,7 @@ export default function Sidebar() {
         );
     }
 
+    // Seznam uživatelem vytvořených míst
     if (isViewingCreatedPlaces) {
         const createdPlaces = places.filter(p => p.isCreatedByUser);
         return (
@@ -134,6 +140,7 @@ export default function Sidebar() {
         );
     }
 
+    // Seznam uložených tras
     if (isViewingRoutes) {
         return (
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, bgcolor: 'background.paper' }}>
@@ -148,7 +155,6 @@ export default function Sidebar() {
                         savedRoutes.map((route) => (
                             <Card key={route.id} sx={{ mb: 2, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                                 onClick={() => { clearViews(); setRoutePoints(route.points); setIsPlanningRoute(true); }}>
-                                {/* <-- NOVÉ: Flex layout pro kartičku trasy s popelnicí --> */}
                                 <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: '16px !important' }}>
                                     <Box>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{route.name}</Typography>
@@ -162,8 +168,6 @@ export default function Sidebar() {
                         ))
                     )}
                 </List>
-
-                {/* <-- NOVÉ: Potvrzovací dialog pro smazání trasy --> */}
                 <Dialog open={Boolean(routeToDelete)} onClose={() => setRouteToDelete(null)}>
                     <DialogTitle sx={{ fontWeight: 'bold' }}>Jste si jistý?</DialogTitle>
                     <DialogContent><DialogContentText>Opravdu smazat trasu "{routeToDelete?.name}"?</DialogContentText></DialogContent>
@@ -176,6 +180,7 @@ export default function Sidebar() {
         );
     }
 
+    // Formulář pro plánování trasy
     if (isPlanningRoute) {
         return (
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0, bgcolor: 'background.paper' }}>
@@ -188,6 +193,7 @@ export default function Sidebar() {
         );
     }
 
+    // Detail vybraného místa
     if (selectedPlace) {
         return (
             <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
@@ -234,6 +240,7 @@ export default function Sidebar() {
 
     return (
         <Box sx={{ position: 'relative', bgcolor: 'background.paper', minHeight: '100%' }}>
+            {/* Sekce filtrů a řazení */}
             <Box sx={{ position: 'sticky', top: '-16px', pt: '16px', pb: 1, zIndex: 10, bgcolor: 'background.paper' }}>
                 <Accordion variant="outlined" sx={{ borderRadius: 2, borderColor: 'primary.main', '&:before': { display: 'none' } }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>

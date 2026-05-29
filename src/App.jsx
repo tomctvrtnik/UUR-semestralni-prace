@@ -14,16 +14,16 @@ function App() {
   const [isDesktopOpen, setIsDesktopOpen] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Všechny potřebné stavy vytažené z useStore na jednom místě
   const { selectedPlace, setSelectedPlace, places, searchQuery, isDarkMode } = useStore();
   const isInitialLoad = useRef(true);
 
-  // Vytvoření dynamického tématu
+  // Inicializace tématu podle dark mode stavu
   const themeInstance = useMemo(() => getTheme(isDarkMode ? 'dark' : 'light'), [isDarkMode]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  // Načtení místa z URL (deep linking) při startu
   useEffect(() => {
     const placeIdFromUrl = searchParams.get('place');
     if (placeIdFromUrl) {
@@ -33,18 +33,21 @@ function App() {
     isInitialLoad.current = false;
   }, []);
 
+  // Aktualizace URL při změně vybraného místa
   useEffect(() => {
     if (isInitialLoad.current) return;
     if (selectedPlace) setSearchParams({ place: selectedPlace.id });
     else setSearchParams({});
   }, [selectedPlace, setSearchParams]);
 
+  // Automatické otevření panelu při výběru místa
   useEffect(() => {
     if (selectedPlace) {
       setIsDesktopOpen(true);
     }
   }, [selectedPlace]);
 
+  // Automatické otevření panelu při vyhledávání
   useEffect(() => {
     if (searchQuery.trim() !== '') {
       setIsDesktopOpen(true);
@@ -53,7 +56,7 @@ function App() {
 
   return (
     <ThemeProvider theme={themeInstance}>
-      <CssBaseline /> {/* Automaticky se postará o barvu pozadí podle tématu */}
+      <CssBaseline />
 
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <Header />
@@ -63,6 +66,7 @@ function App() {
             <InteractiveMap />
           </Box>
 
+          {/* Tlačítko pro skrytí/zobrazení bočního panelu (pouze desktop) */}
           <IconButton
             disableRipple
             onClick={() => setIsDesktopOpen(!isDesktopOpen)}
@@ -74,7 +78,6 @@ function App() {
               transform: 'translate(20%, -50%)',
               zIndex: 1000,
               transition: 'all 0.3s ease',
-              // OPRAVA: Tady chyběl otazník: isDarkMode ? ... : ...
               color: isDarkMode ? '#FDFFF7' : '#1D1E18',
               '&:hover': {
                 bgcolor: 'transparent',
@@ -85,7 +88,6 @@ function App() {
             {isDesktopOpen ? (
               <ChevronRightIcon sx={{
                 fontSize: 50,
-                // OPRAVA: Dynamický filtr podle režimu
                 filter: isDarkMode
                   ? 'drop-shadow(0px 0px 4px rgba(255,255,255,0.4))'
                   : 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))'
@@ -100,6 +102,7 @@ function App() {
             )}
           </IconButton>
 
+          {/* Kontejner bočního panelu */}
           <Box sx={{
             display: { xs: 'none', md: 'block' },
             width: isDesktopOpen ? '400px' : '0px', height: '100%',
@@ -112,6 +115,7 @@ function App() {
             </Box>
           </Box>
 
+          {/* Spodní panel pro mobilní zobrazení */}
           {isMobile && <MobileBottomSheet />}
 
         </Box>

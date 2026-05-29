@@ -21,7 +21,7 @@ const availableTags = ['Vhodné pro děti', 'Se psem', 'Parkování', 'Historie'
 export default function AddPlaceForm({ onClose }) {
     const { addPlace, draftLocation } = useStore();
 
-    // Lokální stavy formuláře
+    // Lokální stavy pro data z formuláře
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
@@ -30,31 +30,29 @@ export default function AddPlaceForm({ onClose }) {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // Záchytná brzda, kdyby náhodou uživatel neklikl do mapy
+        // Kontrola, zda uživatel vybral pozici na mapě
         if (!draftLocation) return;
 
-        // Odeslání nového místa do storu
+        // Uložení místa do globálního storu
         addPlace({
             title,
             description,
-            category: selectedCategories, // Uloží se už jako pole
+            category: selectedCategories,
             tags: selectedTags,
             lat: draftLocation.lat,
             lng: draftLocation.lng
         });
     };
 
-    // Zpracování změny u multi-selectu
+    // Zpracování výběru štítků (převod řetězce na pole pokud je potřeba)
     const handleTagChange = (event) => {
-        const {
-            target: { value },
-        } = event;
-        // typeof value === 'string' je pojistka pro určité způsoby vybrání v MUI
+        const { target: { value } } = event;
         setSelectedTags(
             typeof value === 'string' ? value.split(',') : value,
         );
     };
 
+    // Zpracování výběru kategorií
     const handleCategoryChange = (event) => {
         const { target: { value } } = event;
         setSelectedCategories(typeof value === 'string' ? value.split(',') : value);
@@ -63,6 +61,7 @@ export default function AddPlaceForm({ onClose }) {
     return (
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
+            {/* Zobrazení nápovědy, pokud není vybraná lokace */}
             {!draftLocation && (
                 <Alert severity="info">
                     Kliknutím do mapy vyberte, kde se místo nachází.
@@ -87,6 +86,7 @@ export default function AddPlaceForm({ onClose }) {
                 fullWidth
             />
 
+            {/* Výběr kategorií s možností vybrat více položek */}
             <FormControl required fullWidth>
                 <InputLabel id="category-label">Kategorie (lze vybrat více)</InputLabel>
                 <Select
@@ -106,7 +106,7 @@ export default function AddPlaceForm({ onClose }) {
                 </Select>
             </FormControl>
 
-            {/* MULTI-SELECT PRO ŠTÍTKY */}
+            {/* Výběr štítků */}
             <FormControl fullWidth>
                 <InputLabel id="tags-label">Štítky (lze vybrat více)</InputLabel>
                 <Select
@@ -130,7 +130,7 @@ export default function AddPlaceForm({ onClose }) {
                 type="submit"
                 variant="contained"
                 color="primary"
-                // Opraveno: kontrolujeme, jestli pole selectedCategories není prázdné
+                // Tlačítko je neaktivní, dokud není vybráno místo, název a alespoň jedna kategorie
                 disabled={!draftLocation || !title || selectedCategories.length === 0}
                 sx={{ mt: 2 }}
             >

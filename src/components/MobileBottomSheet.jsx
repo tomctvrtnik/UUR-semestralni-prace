@@ -4,34 +4,28 @@ import { Box, Typography, useTheme } from '@mui/material';
 import Sidebar from './Sidebar';
 import { useStore } from '../store/useStore';
 
-// OPRAVA 1: Hodnoty musí být definované MÍMO komponentu!
-// Tím zabráníme, aby Vaul při každém překreslení rušil animace.
+// Definuje výškové úrovně šuplíku (zavřeno, půlka, full)
 const snapPoints = [0.17, 0.55, 0.98];
 
 export default function MobileBottomSheet() {
     const theme = useTheme();
 
-    // Vytáhneme si kromě mobileSnap i všechny stavy pohledů (záložek)
     const {
         mobileSnap, setMobileSnap,
         isAddingPlace, isViewingVisited, isViewingRoutes, isPlanningRoute, isViewingCreatedPlaces, selectedPlace
     } = useStore();
 
-    // NOVÉ: Vycentrování při prvním načtení stránky
+    // Po načtení aplikace nastaví šuplík do výchozí pozice
     useEffect(() => {
-        // Zpoždění 100ms zaručí, že Vaul už je vykreslený a připravený přijmout povel
         const initTimer = setTimeout(() => {
             setMobileSnap(0.55);
         }, 100);
         return () => clearTimeout(initTimer);
     }, [setMobileSnap]);
 
-    // OPRAVA 2: Reaktor na změnu záložky
+    // Reaguje na změny v aplikaci a vysune šuplík, když uživatel něco vybere
     useEffect(() => {
-        // Kdykoliv se jakýkoliv z těchto stavů změní na 'true' (uživatel přepnul pohled),
-        // vyšleme do Vaul bezpečný povel k vysunutí do půlky.
         if (isAddingPlace || isViewingVisited || isViewingRoutes || isPlanningRoute || isViewingCreatedPlaces || selectedPlace) {
-            // Malé zpoždění, aby se React stihl vykreslit
             const timer = setTimeout(() => {
                 setMobileSnap(0.55);
             }, 50);
@@ -52,7 +46,6 @@ export default function MobileBottomSheet() {
                 }
             }}
             onOpenChange={(isOpen) => {
-                // Pokud uživatel prudce swipne dolů, pošleme šuplík do nejnižšího bodu
                 if (!isOpen) setMobileSnap(0.17);
             }}
             open={true}
@@ -60,6 +53,7 @@ export default function MobileBottomSheet() {
             fadeFromIndex={1}
             modal={false}
         >
+            {/* Tmavé pozadí při vytažení na maximum */}
             <Drawer.Overlay
                 style={{
                     position: 'fixed',
@@ -81,6 +75,7 @@ export default function MobileBottomSheet() {
                         zIndex: 1001, boxShadow: '0px -5px 25px rgba(0,0,0,0.2)',
                     }}
                 >
+                    {/* Táhlo pro ruční manipulaci se šuplíkem */}
                     <Box className="vaul-drag-handle" sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'grab', touchAction: 'none' }}>
                         <Box sx={{
                             width: 45, height: 6,
@@ -92,6 +87,7 @@ export default function MobileBottomSheet() {
                         </Typography>
                     </Box>
 
+                    {/* Obsah šuplíku - Sidebar s navigací */}
                     <Box data-vaul-no-drag sx={{ flexGrow: 1, overflowY: 'auto', px: 2, pb: 10 }}>
                         <Sidebar />
                     </Box>

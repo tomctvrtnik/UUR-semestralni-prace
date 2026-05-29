@@ -15,6 +15,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// Komponenta pro řaditelné položky trasy
 function SortableRouteItem({ point, onRemove }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: point.routeId });
 
@@ -51,15 +52,18 @@ function SortableRouteItem({ point, onRemove }) {
 export default function RoutePlannerForm({ onClose }) {
     const [transportMode, setTransportMode] = useState('car');
 
+    // Načtení dat a funkcí ze storu
     const { places, routePoints, addRoutePoint, removeRoutePoint, setRoutePoints, saveRoute, clearRoute } = useStore();
 
     const handleClose = () => { if (onClose) onClose(); };
 
+    // Konfigurace senzorů pro drag-and-drop
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
+    // Funkce pro změnu pořadí bodů po přetažení
     const handleDragEnd = (event) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
@@ -68,6 +72,7 @@ export default function RoutePlannerForm({ onClose }) {
         setRoutePoints(arrayMove(routePoints, oldIndex, newIndex));
     };
 
+    // První bod (start) je fixní, ostatní lze řadit
     const fixedPoint = routePoints[0];
     const draggablePoints = routePoints.slice(1);
 
@@ -84,6 +89,7 @@ export default function RoutePlannerForm({ onClose }) {
                 <ToggleButton value="walk"><DirectionsWalkIcon sx={{ mr: 1 }} /> Pěšky</ToggleButton>
             </ToggleButtonGroup>
 
+            {/* Vyhledávání míst pro přidání do trasy */}
             <Autocomplete
                 options={places}
                 getOptionLabel={(option) => option.title}
@@ -114,6 +120,7 @@ export default function RoutePlannerForm({ onClose }) {
                 width: '100%'
             }}>
                 <List dense disablePadding>
+                    {/* Zobrazení startovního bodu (fixní) */}
                     {fixedPoint && (
                         <ListItem disablePadding sx={{ mb: 1, p: 1, borderBottom: 1, borderColor: 'divider' }}>
                             <Box sx={{ width: 28, mr: 0.5 }} />
@@ -122,6 +129,7 @@ export default function RoutePlannerForm({ onClose }) {
                         </ListItem>
                     )}
 
+                    {/* Drag-and-drop kontext pro seřaditelné body */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <SortableContext items={draggablePoints.map(p => p.routeId)} strategy={verticalListSortingStrategy}>
                             {draggablePoints.map((point) => (
@@ -134,7 +142,6 @@ export default function RoutePlannerForm({ onClose }) {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            {/* UPRAVENÝ SPODNÍ PANEL: Uložit a Smazat vedle sebe */}
             <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 <Button
                     variant="contained"
@@ -148,6 +155,7 @@ export default function RoutePlannerForm({ onClose }) {
                             date: new Date().toLocaleDateString()
                         });
 
+                        // Po uložení resetuje stav trasy a zavře okno
                         clearRoute();
                         handleClose();
                     }}
@@ -162,6 +170,7 @@ export default function RoutePlannerForm({ onClose }) {
                     sx={{ flex: 1 }}
                     startIcon={<DeleteIcon />}
                     onClick={() => {
+                        // Úplné smazání trasy ze storu
                         clearRoute();
                         handleClose();
                     }}
