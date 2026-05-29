@@ -3,7 +3,8 @@ import { useStore } from '../store/useStore';
 import {
     AppBar, Toolbar, Typography, IconButton, Drawer, Box,
     List, ListItem, ListItemButton, ListItemIcon, ListItemText, Divider,
-    InputBase, styled, Dialog, Slide, useMediaQuery, useTheme, Button
+    InputBase, styled, Dialog, Slide, useMediaQuery, useTheme, Button,
+    Card, CardContent // <-- Přidány importy pro karty
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
@@ -80,7 +81,9 @@ export default function Header() {
         setIsViewingVisited,
         setIsViewingCreatedPlaces,
         clearViews,
-        setMobileSnap
+        setMobileSnap,
+        setSelectedPlace, // <-- Přidáno pro otevření detailu místa
+        places = []
     } = useStore();
 
     const handleMenuClick = (actionFn) => {
@@ -96,15 +99,30 @@ export default function Header() {
         setIsSearchModalOpen(true);
     };
 
-    // NOVÉ: Funkce pro potvrzení hledání (zavře okno a vytáhne šuplík s výsledky)
     const handleConfirmSearch = () => {
-        setIsSearchModalOpen(false); // Schová překryvné okno
-
-        // Zpoždění zajistí, že animace zavření nejdřív proběhne, a pak vytáhneme šuplík
+        setIsSearchModalOpen(false);
         setTimeout(() => {
             setMobileSnap(0.55);
         }, 100);
     };
+
+    // NOVÉ: Funkce pro kliknutí přímo na kartu ve výsledcích
+    const handlePlaceClick = (place) => {
+        setIsSearchModalOpen(false); // Zavře modal
+        clearViews(); // Vyčistí ostatní pohledy
+        setSelectedPlace(place); // Nastaví vybrané místo (otevře detail)
+
+        setTimeout(() => {
+            setMobileSnap(0.55); // Vytáhne šuplík nahoru
+        }, 100);
+    };
+
+    // OPRAVA: Filtrace výsledků používá place.title místo place.name
+    const filteredPlaces = searchQuery
+        ? places.filter(place =>
+            place.title && place.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : [];
 
     return (
         <>
@@ -112,56 +130,31 @@ export default function Header() {
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 1, sm: 2 } }}>
 
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton
-                            size="large"
-                            edge="start"
-                            color="inherit"
-                            aria-label="menu"
-                            sx={{ mr: 1 }}
-                            onClick={() => setIsMenuOpen(true)}
-                        >
+                        <IconButton size="large" edge="start" color="inherit" aria-label="menu" sx={{ mr: 1 }} onClick={() => setIsMenuOpen(true)}>
                             <MenuIcon />
                         </IconButton>
-
                         <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', mr: 4 }}>
                             Objevuj
                         </Typography>
-
                         <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
                             <PersonIcon sx={{ fontSize: 36, mr: 1, opacity: 0.9 }} />
                             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', lineHeight: 1.1 }}>
-                                    Tomáš Čtvrtník
-                                </Typography>
-                                <Typography variant="caption" sx={{ opacity: 0.8, lineHeight: 1.1 }}>
-                                    A25B0036P
-                                </Typography>
+                                <Typography variant="body2" sx={{ fontWeight: 'bold', lineHeight: 1.1 }}>Tomáš Čtvrtník</Typography>
+                                <Typography variant="caption" sx={{ opacity: 0.8, lineHeight: 1.1 }}>A25B0036P</Typography>
                             </Box>
                         </Box>
                     </Box>
 
                     <Box sx={{ width: { xs: '100%', md: '400px' }, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, px: { xs: 1, md: 2 } }}>
                         <Search onClick={isMobile ? openSearch : undefined} sx={{ cursor: isMobile ? 'pointer' : 'text' }}>
-                            <SearchIconWrapper>
-                                <SearchIcon />
-                            </SearchIconWrapper>
-
+                            <SearchIconWrapper><SearchIcon /></SearchIconWrapper>
                             {isMobile ? (
                                 <>
                                     <Box sx={{ py: 1.2, pl: 6, pr: 4, width: '100%', color: searchQuery ? 'inherit' : 'text.secondary', boxSizing: 'border-box' }}>
                                         {searchQuery || "Hledat"}
                                     </Box>
-
                                     {searchQuery && (
-                                        <IconButton
-                                            size="small"
-                                            aria-label="vymazat hledání"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSearchQuery('');
-                                            }}
-                                            sx={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', color: '#009FB7' }}
-                                        >
+                                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); setSearchQuery(''); }} sx={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)', color: '#009FB7' }}>
                                             <CloseIcon fontSize="small" />
                                         </IconButton>
                                     )}
@@ -172,17 +165,10 @@ export default function Header() {
                                     inputProps={{ 'aria-label': 'search' }}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    endAdornment={
-                                        searchQuery ? (
-                                            <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ color: '#009FB7', mr: 0.5 }}>
-                                                <CloseIcon fontSize="small" />
-                                            </IconButton>
-                                        ) : null
-                                    }
+                                    endAdornment={searchQuery ? <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ color: '#009FB7', mr: 0.5 }}><CloseIcon fontSize="small" /></IconButton> : null}
                                 />
                             )}
                         </Search>
-
                         <IconButton onClick={toggleDarkMode} sx={{ color: 'white', mr: 1 }}>
                             {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
                         </IconButton>
@@ -190,7 +176,6 @@ export default function Header() {
                 </Toolbar>
             </AppBar>
 
-            {/* FULLSCREEN VYHLEDÁVACÍ MODAL */}
             <Dialog
                 fullScreen
                 open={isSearchModalOpen}
@@ -198,13 +183,7 @@ export default function Header() {
                 TransitionComponent={Transition}
                 disableEnforceFocus
                 disableRestoreFocus
-                TransitionProps={{
-                    onEntered: () => {
-                        if (searchInputRef.current) {
-                            searchInputRef.current.focus();
-                        }
-                    }
-                }}
+                TransitionProps={{ onEntered: () => { if (searchInputRef.current) { searchInputRef.current.focus(); } } }}
                 sx={{ zIndex: 10000 }}
             >
                 <AppBar position="static" color="inherit" elevation={1}>
@@ -212,46 +191,72 @@ export default function Header() {
                         <IconButton edge="start" color="inherit" onClick={() => setIsSearchModalOpen(false)} aria-label="close">
                             <ArrowBackIcon />
                         </IconButton>
-
-                        {/* ZDE JE OPRAVA: Obalení do formuláře aktivuje tlačítko "Hledat/Enter" na klávesnici */}
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault(); // Zabrání refreshe stránky
-                                handleConfirmSearch(); // Potvrdí hledání
-                            }}
-                            style={{ display: 'flex', width: '100%', alignItems: 'center' }}
-                        >
+                        <form onSubmit={(e) => { e.preventDefault(); handleConfirmSearch(); }} style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
                             <InputBase
                                 inputRef={searchInputRef}
                                 sx={{ ml: 1, flex: 1, fontSize: '1.1rem' }}
-                                placeholder="Hledat"
+                                placeholder="Hledat místa..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 inputProps={{ 'aria-label': 'search real' }}
                             />
                         </form>
-
-                        {searchQuery && (
-                            <IconButton onClick={() => setSearchQuery('')}>
-                                <CloseIcon />
-                            </IconButton>
-                        )}
+                        {searchQuery && <IconButton onClick={() => setSearchQuery('')}><CloseIcon /></IconButton>}
                     </Toolbar>
                 </AppBar>
 
-                {/* Tělo modalu s tlačítkem pro potvrzení */}
                 <Box sx={{ p: 2, bgcolor: 'background.default', height: '100%', overflowY: 'auto' }}>
                     {searchQuery ? (
-                        <Button
-                            variant="outlined"
-                            fullWidth
-                            size="large"
-                            onClick={handleConfirmSearch}
-                            startIcon={<SearchIcon />}
-                            sx={{ mt: 2, py: 1.5, borderRadius: 2, fontSize: '1.1rem' }}
-                        >
-                            Hledat: "{searchQuery}"
-                        </Button>
+                        <>
+                            <Button
+                                variant="outlined"
+                                fullWidth
+                                size="large"
+                                onClick={handleConfirmSearch}
+                                startIcon={<SearchIcon />}
+                                sx={{ mb: 3, py: 1.5, borderRadius: 2, fontSize: '1.1rem' }}
+                            >
+                                Hledat: "{searchQuery}"
+                            </Button>
+
+                            {/* PŘIDANÉ KARTY ZE SIDEBARU */}
+                            {filteredPlaces.length > 0 && (
+                                <Box>
+                                    <Typography variant="h6" color="text.primary" gutterBottom>
+                                        Nalezená místa
+                                    </Typography>
+                                    {filteredPlaces.map((place) => (
+                                        <Card
+                                            key={place.id}
+                                            sx={{ mb: 2, cursor: 'pointer', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }}
+                                            onClick={() => handlePlaceClick(place)}
+                                        >
+                                            <CardContent>
+                                                <Typography variant="h6" color="text.primary">{place.title}</Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {place.category} • {place.distance} • {place.rating || 0} ★
+                                                </Typography>
+                                                {place.tags && place.tags.length > 0 && (
+                                                    <Box sx={{ mt: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                                                        {place.tags.slice(0, 3).map(tag => (
+                                                            <Typography key={tag} variant="caption" sx={{ bgcolor: 'action.hover', px: 1, borderRadius: 1 }}>
+                                                                {tag}
+                                                            </Typography>
+                                                        ))}
+                                                    </Box>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Box>
+                            )}
+
+                            {filteredPlaces.length === 0 && (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                                    Žádné místo odpovídající "{searchQuery}" jsme nenašli.
+                                </Typography>
+                            )}
+                        </>
                     ) : (
                         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
                             Začněte psát pro vyhledávání...
@@ -260,58 +265,23 @@ export default function Header() {
                 </Box>
             </Dialog>
 
-            {/* Hamburger Menu (Zůstává beze změn) */}
             <Drawer anchor="left" open={isMenuOpen} onClose={() => setIsMenuOpen(false)}>
                 <Box sx={{ width: 280 }} role="presentation">
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                            Menu
-                        </Typography>
-                        <IconButton onClick={() => setIsMenuOpen(false)}>
-                            <ChevronLeftIcon />
-                        </IconButton>
+                        <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>Menu</Typography>
+                        <IconButton onClick={() => setIsMenuOpen(false)}><ChevronLeftIcon /></IconButton>
                     </Box>
                     <Divider />
                     <List>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => handleMenuClick(() => setIsAddingPlace(true))}>
-                                <ListItemIcon><AddLocationAltIcon color="primary" /></ListItemIcon>
-                                <ListItemText primary="Přidat vlastní místo" sx={{ '& .MuiTypography-root': { fontWeight: 'bold' } }} />
-                            </ListItemButton>
-                        </ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsAddingPlace(true))}><ListItemIcon><AddLocationAltIcon color="primary" /></ListItemIcon><ListItemText primary="Přidat vlastní místo" sx={{ '& .MuiTypography-root': { fontWeight: 'bold' } }} /></ListItemButton></ListItem>
                     </List>
                     <Divider />
                     <List>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => handleMenuClick(() => setIsViewingVisited(true))}>
-                                <ListItemIcon><CheckCircleIcon /></ListItemIcon>
-                                <ListItemText primary="Mnou navštívené" />
-                            </ListItemButton>
-                        </ListItem>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => handleMenuClick(() => setIsViewingRoutes(true))}>
-                                <ListItemIcon><MapIcon /></ListItemIcon>
-                                <ListItemText primary="Moje trasy" />
-                            </ListItemButton>
-                        </ListItem>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => handleMenuClick(() => setIsPlanningRoute(true))}>
-                                <ListItemIcon><RouteIcon /></ListItemIcon>
-                                <ListItemText primary="Naplánovat trasu" />
-                            </ListItemButton>
-                        </ListItem>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => handleMenuClick(() => setIsViewingCreatedPlaces(true))}>
-                                <ListItemIcon><PlaceIcon /></ListItemIcon>
-                                <ListItemText primary="Moje místa" />
-                            </ListItemButton>
-                        </ListItem>
-                        <ListItem disablePadding>
-                            <ListItemButton onClick={() => handleMenuClick()}>
-                                <ListItemIcon><InfoOutlinedIcon /></ListItemIcon>
-                                <ListItemText primary="O aplikaci" />
-                            </ListItemButton>
-                        </ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsViewingVisited(true))}><ListItemIcon><CheckCircleIcon /></ListItemIcon><ListItemText primary="Mnou navštívené" /></ListItemButton></ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsViewingRoutes(true))}><ListItemIcon><MapIcon /></ListItemIcon><ListItemText primary="Moje trasy" /></ListItemButton></ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsPlanningRoute(true))}><ListItemIcon><RouteIcon /></ListItemIcon><ListItemText primary="Naplánovat trasu" /></ListItemButton></ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick(() => setIsViewingCreatedPlaces(true))}><ListItemIcon><PlaceIcon /></ListItemIcon><ListItemText primary="Moje místa" /></ListItemButton></ListItem>
+                        <ListItem disablePadding><ListItemButton onClick={() => handleMenuClick()}><ListItemIcon><InfoOutlinedIcon /></ListItemIcon><ListItemText primary="O aplikaci" /></ListItemButton></ListItem>
                     </List>
                 </Box>
             </Drawer>
