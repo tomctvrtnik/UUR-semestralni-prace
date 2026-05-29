@@ -61,7 +61,6 @@ export default function Header() {
 
     const { isDarkMode, toggleDarkMode } = useStore();
 
-    // Natažení funkcí a stavů ze Zustandu
     const {
         setIsAddingPlace,
         searchQuery,
@@ -74,11 +73,15 @@ export default function Header() {
         setMobileSnap
     } = useStore();
 
-    const handleAddPlaceClick = () => {
-        clearViews();
-        setIsAddingPlace(true);
-        setIsMenuOpen(false);
-        setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
+    // POMOCNÁ FUNKCE: Provede akci, zavře menu a se zpožděním vysune šuplík
+    const handleMenuClick = (actionFn) => {
+        setIsMenuOpen(false); // Okamžitě zavře hamburger menu
+        if (actionFn) actionFn(); // Spustí logiku pohledu (např. clearViews)
+
+        // Magie: Počká 150ms, než animace menu skončí, a pak s jistotou vysune šuplík
+        setTimeout(() => {
+            setMobileSnap(0.55);
+        }, 150);
     };
 
     return (
@@ -126,7 +129,6 @@ export default function Header() {
                         gap: 2,
                         px: { xs: 1, md: 2 }
                     }}>
-                        {/* OPRAVA: Místo 0.1 voláme 0.25 (odpovídá nejnižšímu bodu v šuplíku) */}
                         <Search onFocus={() => setMobileSnap(0.25)}>
                             <SearchIconWrapper>
                                 <SearchIcon />
@@ -167,7 +169,6 @@ export default function Header() {
             >
                 <Box sx={{ width: 280 }} role="presentation">
 
-                    {/* HLAVIČKA MENU SE ŠIPKOU */}
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2 }}>
                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                             Menu
@@ -181,7 +182,10 @@ export default function Header() {
 
                     <List>
                         <ListItem disablePadding>
-                            <ListItemButton onClick={handleAddPlaceClick}>
+                            <ListItemButton onClick={() => handleMenuClick(() => {
+                                clearViews();
+                                setIsAddingPlace(true);
+                            })}>
                                 <ListItemIcon>
                                     <AddLocationAltIcon color="primary" />
                                 </ListItemIcon>
@@ -194,12 +198,10 @@ export default function Header() {
 
                     <List>
                         <ListItem disablePadding>
-                            <ListItemButton onClick={() => {
+                            <ListItemButton onClick={() => handleMenuClick(() => {
                                 clearViews();
                                 setIsViewingVisited(true);
-                                setIsMenuOpen(false);
-                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
-                            }}>
+                            })}>
                                 <ListItemIcon>
                                     <CheckCircleIcon />
                                 </ListItemIcon>
@@ -207,14 +209,11 @@ export default function Header() {
                             </ListItemButton>
                         </ListItem>
 
-                        {/* --- MOJE TRASY --- */}
                         <ListItem disablePadding>
-                            <ListItemButton onClick={() => {
+                            <ListItemButton onClick={() => handleMenuClick(() => {
                                 clearViews();
                                 setIsViewingRoutes(true);
-                                setIsMenuOpen(false);
-                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
-                            }}>
+                            })}>
                                 <ListItemIcon>
                                     <MapIcon />
                                 </ListItemIcon>
@@ -223,12 +222,10 @@ export default function Header() {
                         </ListItem>
 
                         <ListItem disablePadding>
-                            <ListItemButton onClick={() => {
+                            <ListItemButton onClick={() => handleMenuClick(() => {
                                 clearViews();
                                 setIsPlanningRoute(true);
-                                setIsMenuOpen(false);
-                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
-                            }}>
+                            })}>
                                 <ListItemIcon>
                                     <RouteIcon />
                                 </ListItemIcon>
@@ -237,12 +234,10 @@ export default function Header() {
                         </ListItem>
 
                         <ListItem disablePadding>
-                            <ListItemButton onClick={() => {
+                            <ListItemButton onClick={() => handleMenuClick(() => {
                                 clearViews();
                                 setIsViewingCreatedPlaces(true);
-                                setIsMenuOpen(false);
-                                setMobileSnap(0.55); // NÁPAD: Bezpečný reset do půlky
-                            }}>
+                            })}>
                                 <ListItemIcon>
                                     <PlaceIcon />
                                 </ListItemIcon>
@@ -251,11 +246,9 @@ export default function Header() {
                         </ListItem>
 
                         <ListItem disablePadding>
-                            <ListItemButton onClick={() => {
-                                setIsMenuOpen(false);
+                            <ListItemButton onClick={() => handleMenuClick(() => {
                                 clearViews();
-                                setMobileSnap(0.55); // Resetujeme na defaultní pohled
-                            }}>
+                            })}>
                                 <ListItemIcon>
                                     <InfoOutlinedIcon />
                                 </ListItemIcon>
