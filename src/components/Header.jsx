@@ -189,7 +189,22 @@ export default function Header() {
                             <MenuIcon />
                         </IconButton>
 
-                        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', mr: 4 }}>
+                        <Typography
+                            variant="h6"
+                            component="div"
+                            sx={{
+                                fontWeight: 'bold',
+                                mr: 4,
+                                cursor: 'pointer', // Myš se změní na ručičku, aby bylo jasné, že jde kliknout
+                                '&:hover': { opacity: 0.8 } // Jemně to pohasne, když na to najedeš myší
+                            }}
+                            onClick={() => {
+                                clearViews();           // Zavře všechny zobrazené panely (přidávání, trasy...)
+                                setSelectedPlace(null); // Odznačí konkrétní místo a vrátí tě na hlavní seznam
+                                setSearchQuery('');     // Vyčistí případný text ve vyhledávání
+                                setMobileSnap(0.55);    // Na mobilu srovná šuplík na výchozí pozici
+                            }}
+                        >
                             Objevuj
                         </Typography>
 
@@ -273,7 +288,9 @@ export default function Header() {
                                         <Card key={place.id} sx={{ mb: 2, cursor: 'pointer', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }} onClick={() => handlePlaceClick(place)}>
                                             <CardContent>
                                                 <Typography variant="h6" color="text.primary">{place.title}</Typography>
-                                                <Typography variant="body2" color="text.secondary">{place.category} • {place.distance} • {place.rating || 0} ★</Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {Array.isArray(place.category) ? place.category.join(', ') : place.category} • {place.distance} • {place.rating || 0} ★
+                                                </Typography>
                                                 {place.tags && place.tags.length > 0 && (
                                                     <Box sx={{ mt: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                                                         {place.tags.slice(0, 3).map(tag => (

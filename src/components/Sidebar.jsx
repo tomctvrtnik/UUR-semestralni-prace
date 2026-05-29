@@ -107,7 +107,10 @@ export default function Sidebar() {
                                 <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: '16px !important' }}>
                                     <Box>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{place.title}</Typography>
-                                        <Typography variant="body2" color="text.secondary">Kategorie: {place.category}</Typography>
+                                        {/* OPRAVA KATEGORIE */}
+                                        <Typography variant="body2" color="text.secondary">
+                                            Kategorie: {Array.isArray(place.category) ? place.category.join(', ') : place.category}
+                                        </Typography>
                                     </Box>
                                     <IconButton color="error" onClick={(e) => { e.stopPropagation(); setPlaceToDelete(place); }}>
                                         <DeleteIcon />
@@ -182,9 +185,12 @@ export default function Sidebar() {
                     >Trasa</Button>
                 </Box>
                 <Typography variant="h4" color="text.primary" sx={{ fontWeight: 'bold' }} gutterBottom>{selectedPlace.title}</Typography>
+
+                {/* OPRAVA KATEGORIE V DETAILU */}
                 <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                    Kategorie: {selectedPlace.category} • Hodnocení: {selectedPlace.rating || 0} ★
+                    Kategorie: {Array.isArray(selectedPlace.category) ? selectedPlace.category.join(', ') : selectedPlace.category} • Hodnocení: {selectedPlace.rating || 0} ★
                 </Typography>
+
                 <Typography variant="body1" sx={{ mt: 2 }}>{selectedPlace.description}</Typography>
                 {selectedPlace.tags && selectedPlace.tags.length > 0 && (
                     <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -271,7 +277,12 @@ export default function Sidebar() {
                     <Card key={place.id} sx={{ mb: 2, cursor: 'pointer', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } }} onClick={() => setSelectedPlace(place)}>
                         <CardContent>
                             <Typography variant="h6" color="text.primary">{place.title}</Typography>
-                            <Typography variant="body2" color="text.secondary">{place.category} • {place.distance} • {place.rating || 0} ★</Typography>
+
+                            {/* OPRAVA KATEGORIE A ZACHOVÁNÍ VZDÁLENOSTI I HODNOCENÍ */}
+                            <Typography variant="body2" color="text.secondary">
+                                {Array.isArray(place.category) ? place.category.join(', ') : place.category} • {place.distance} • {place.rating || 0} ★
+                            </Typography>
+
                             {place.tags && place.tags.length > 0 && (
                                 <Box sx={{ mt: 1, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                                     {place.tags.slice(0, 3).map(tag => (

@@ -4,7 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './InteractiveMap.css';
 import { useStore } from '../store/useStore';
-import { useMediaQuery, useTheme } from '@mui/material';
+import { useMediaQuery, useTheme, Fab } from '@mui/material';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
 
 // --- POMOCNÁ FUNKCE PRO VZDÁLENOST ---
 const getDistanceInKm = (distanceStr) => {
@@ -46,6 +47,49 @@ const userIcon = L.divIcon({
     iconAnchor: [20, 20],
     popupAnchor: [0, -20]
 });
+
+// --- KOMPONENTA: TLAČÍTKO PRO VYCENTROVÁNÍ NA POLOHU ---
+function LocateMeButton() {
+    const map = useMap();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+    const userLat = 49.7475;
+    const userLng = 13.3776;
+
+    const handleLocate = () => {
+        map.flyTo([userLat, userLng], 15, {
+            animate: true,
+            duration: 1.2
+        });
+    };
+
+    // NEPRŮSTŘELNÝ FIX: Obaleno v čistém <div> s inline styly
+    return (
+        <div style={{
+            position: 'absolute',
+            right: '16px',
+            top: isMobile ? '16px' : 'auto',
+            bottom: isMobile ? 'auto' : '24px',
+            zIndex: 9999 // Vynutí zobrazení nad všemi vrstvami Leafletu
+        }}>
+            <Fab
+                aria-label="moje poloha"
+                size={isMobile ? "small" : "medium"}
+                onClick={handleLocate}
+                sx={{
+                    backgroundColor: '#FDFFF7',
+                    color: '#009FB7',
+                    '&:hover': {
+                        backgroundColor: '#f5f7f0',
+                    }
+                }}
+            >
+                <MyLocationIcon />
+            </Fab>
+        </div>
+    );
+}
 
 // --- ZACHYTÁVÁNÍ KLIKNUTÍ A ZOOMU ---
 function MapEvents({ onZoomChange }) {
@@ -133,7 +177,7 @@ export default function InteractiveMap() {
         hideVisited,
         minRating,
         activeTags,
-        isDarkMode // Tmavý režim ze storu
+        isDarkMode
     } = useStore();
 
     // --- FILTRAČNÍ LOGIKA ---
@@ -229,6 +273,10 @@ export default function InteractiveMap() {
             {isAddingPlace && draftLocation && (
                 <Marker position={[draftLocation.lat, draftLocation.lng]} icon={draftIcon} zIndexOffset={1000} />
             )}
+
+            {/* TLAČÍTKO PRO NÁVRAT NA POLOHU */}
+            <LocateMeButton />
+
         </MapContainer>
     );
 }
