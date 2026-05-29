@@ -86,7 +86,7 @@ export default function Header() {
 
     return (
         <>
-            <AppBar position="static" color="primary" sx={{ zIndex: 9999 }}>
+            <AppBar position="sticky" color="primary" sx={{ top: 0, zIndex: 9999 }}>
                 <Toolbar sx={{ display: 'flex', justifyContent: 'space-between', px: { xs: 1, sm: 2 } }}>
 
                     {/* LEVÁ ČÁST: Menu, Nadpis a Profil */}
